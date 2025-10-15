@@ -1,7 +1,7 @@
 import os
 import unittest
 import inspect
-from modifying.feature_extraction import *
+from preprocessing.feature_extraction import *
 from modifying.detection import *
 
 
@@ -62,6 +62,7 @@ class TestModifying(unittest.TestCase):
         print(inspect.stack()[0][3])
         model = start_ensemble('models/ensembles/beautification_detection.json')
         self.assertRaises(AssertionError, model.run, self.test_image, 'unknown')
+
 
 
 
