@@ -5,7 +5,7 @@ from copy import copy
 import joblib
 from scipy import stats
 from modifying.classifier import ModClassifier
-from modifying.feature_extraction import load_img, resize_img, extract_lbp_features, extract_hog_features, \
+from preprocessing.feature_extraction import load_img, resize_img, extract_lbp_features, extract_hog_features, \
     extract_face_landmarks
 
 
@@ -285,3 +285,4 @@ def start_ensemble(from_file: str) -> ModVotingDetector:
         print(f'    Classifier Parameters: {detector.clf_model.summary()}')
         print()
     return model
+
