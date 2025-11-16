@@ -1,4 +1,3 @@
-"""Generated image detector class mirroring pipeline.ipynb."""
 from __future__ import annotations
 
 import math
@@ -20,9 +19,9 @@ class GeneratedImageDetector:
 
     def __init__(
         self,
-        vit_model_path: str | Path = "./models/eva_jpgtest_4.pth",
-        convnext_model_path: str | Path = "./models/convnext_jpgtest_4.pth",
-        dt_model: str | Path = "./final_decisiontree.pkl",
+        vit_model_path: str | Path = "./models/convnext_model.pth",
+        convnext_model_path: str | Path = "./models/convnext_model.pth",
+        dt_model: str | Path = "./models/final_decisiontree.pkl",
         *,
         device: str | None = None,
     ) -> None:
@@ -41,7 +40,7 @@ class GeneratedImageDetector:
         self.device = device
 
         map_location = self.device if self.device == "cpu" else "cpu"
-        self.model_vit = torch.load(vit_model_path, map_location=map_location).eval()
+        self.model_vit = torch.load(vit_model_path, map_location=map_location,weights_only=False).eval()
         if not hasattr(self.model_vit, "reg_token"):
             self.model_vit.reg_token = None
         if not hasattr(self.model_vit, "no_embed_class"):
@@ -58,7 +57,7 @@ class GeneratedImageDetector:
                     module.k_norm = torch.nn.Identity()
                 if not hasattr(module, "num_prefix_tokens"):
                     module.num_prefix_tokens = 1
-        self.model_convnext = torch.load(convnext_model_path, map_location=map_location).eval()
+        self.model_convnext = torch.load(convnext_model_path, map_location=map_location,weights_only=False).eval()
 
         if self.device != "cpu":
             self.model_vit = self.model_vit.to(self.device)
