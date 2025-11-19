@@ -11,7 +11,7 @@ import logging
 import cv2
 
 from swapping.feature_calculator import calculate_features_one, flatten_landmarks
-from swapping.exceptions import ModelLoadingError
+from swapping.exceptions import ModelLoadingError, FeatureExtractionError, SwappingError
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class FaceCropper:
         model_path = os.path.join(models_dir, 'face_detection_yunet_2023mar.onnx')
         if not os.path.exists(model_path):
             logger.error(f"Файл модели детекции лиц не найден: {model_path}")
-            raise FileNotFoundError(f"Отсутствует модель детекции лиц: {model_path}")
+            raise ModelLoadingError(f"Отсутствует обязательный файл модели детекции лиц: {model_path}")
 
         try:
             self.face_detector = cv2.FaceDetectorYN.create(
@@ -36,7 +36,7 @@ class FaceCropper:
             )
         except Exception as e:
             logger.error(f"Ошибка инициализации FaceDetectorYN: {e}")
-            raise RuntimeError(f"Ошибка инициализации FaceDetectorYN: {e}")
+            raise ModelLoadingError(f"Ошибка инициализации FaceDetectorYN: {e}")
 
     def crop_face(self, image: Image.Image) -> Image.Image:
         if image is None:
@@ -115,6 +115,9 @@ class DeepfakePredictor:
             fb_dir = os.path.join(models_dir, "feature_based")
             nn_dir = os.path.join(models_dir, "efficientnet")
 
+            if not os.path.exists(fb_dir):
+                raise ModelLoadingError(f"Папка с feature-based моделями не найдена: {fb_dir}")
+
             self.rf_ef = joblib.load(os.path.join(fb_dir, "random_forest_ef.pkl"))
             self.rf_fl = joblib.load(os.path.join(fb_dir, "random_forest_fl.pkl"))
             self.cb_lbp = CatBoostClassifier().load_model(os.path.join(fb_dir, "catboost_lbp.cbm"))
@@ -136,6 +139,7 @@ class DeepfakePredictor:
                         model.eval()
                         self.effnet_models[tech_name] = model.to(self.device)
         except (FileNotFoundError, CatBoostError, OSError, RuntimeError) as e:
+            # Ловим стандартные ошибки и оборачиваем их в ModelLoadingError для единообразия
             raise ModelLoadingError(f"Не удалось загрузить модель: {e}")
 
         self.transform = transforms.Compose([
@@ -144,26 +148,53 @@ class DeepfakePredictor:
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
 
+    def _validate_features(self, df: pd.DataFrame, required_features: list, model_name: str):
+        """Проверяет наличие необходимых колонок в DataFrame."""
+        missing_features = [col for col in required_features if col not in df.columns]
+        if missing_features:
+            logger.error(f"Отсутствуют признаки для модели {model_name}: {missing_features}")
+            raise FeatureExtractionError(
+                f"Не удалось сформировать полный вектор признаков. Отсутствуют поля для {model_name}: {missing_features[:5]}..."
+            )
+
     def _get_feature_based_probs(self, df: pd.DataFrame) -> dict:
-        X_ef = df[self.rf_ef.feature_names_in_]
-        prob_ef = self.rf_ef.predict_proba(X_ef)[0]
+        try:
+            # RF EF
+            self._validate_features(df, self.rf_ef.feature_names_in_, "RandomForest_EF")
+            X_ef = df[self.rf_ef.feature_names_in_]
+            prob_ef = self.rf_ef.predict_proba(X_ef)[0]
 
-        num_landmark_cols = len(df.filter(regex=r'^\d+$', axis=1).columns)
-        df_landmarks = df.loc[:, '0':str(num_landmark_cols - 1)]
-        X_fl_expanded = flatten_landmarks(df_landmarks)
-        X_fl = X_fl_expanded[self.rf_fl.feature_names_in_]
-        prob_fl = self.rf_fl.predict_proba(X_fl)[0]
+            # RF FL (Landmarks)
+            num_landmark_cols = len(df.filter(regex=r'^\d+$', axis=1).columns)
+            df_landmarks = df.loc[:, '0':str(num_landmark_cols - 1)]
+            X_fl_expanded = flatten_landmarks(df_landmarks)
 
-        X_lbp = df[self.cb_lbp.feature_names_]
-        prob_lbp = self.cb_lbp.predict_proba(X_lbp)[0]
+            self._validate_features(X_fl_expanded, self.rf_fl.feature_names_in_, "RandomForest_FL")
+            X_fl = X_fl_expanded[self.rf_fl.feature_names_in_]
+            prob_fl = self.rf_fl.predict_proba(X_fl)[0]
 
-        X_tf_sf = df[self.cb_tf_sf.feature_names_]
-        prob_tf_sf = self.cb_tf_sf.predict_proba(X_tf_sf)[0]
+            # CatBoost LBP
+            self._validate_features(df, self.cb_lbp.feature_names_, "CatBoost_LBP")
+            X_lbp = df[self.cb_lbp.feature_names_]
+            prob_lbp = self.cb_lbp.predict_proba(X_lbp)[0]
 
-        return {'ef': prob_ef, 'fl': prob_fl, 'lbp': prob_lbp, 'tf_sf': prob_tf_sf}
+            # CatBoost TF SF
+            self._validate_features(df, self.cb_tf_sf.feature_names_, "CatBoost_TF_SF")
+            X_tf_sf = df[self.cb_tf_sf.feature_names_]
+            prob_tf_sf = self.cb_tf_sf.predict_proba(X_tf_sf)[0]
+
+            return {'ef': prob_ef, 'fl': prob_fl, 'lbp': prob_lbp, 'tf_sf': prob_tf_sf}
+
+        except KeyError as e:
+            # На случай, если что-то проскочило валидацию, но вызвало ошибку pandas
+            raise FeatureExtractionError(f"Ошибка доступа к признакам при прогнозировании: {e}")
+        except Exception as e:
+            raise SwappingError(f"Ошибка при расчете вероятностей на основе признаков: {e}")
 
     def predict(self, image_path: str) -> dict:
         features_df = calculate_features_one(image_path)
+
+        # Этот метод теперь гарантированно выбросит понятное исключение, если признаков не хватает
         fb_probs = self._get_feature_based_probs(features_df)
 
         effnet_predictions = {}
@@ -198,23 +229,28 @@ class DeepfakePredictor:
             logger.error(f"Ошибка при обработке изображения для EfficientNet: {e}")
             effnet_probs_for_meta = np.array([0.5, 0.5])
 
-        meta_features = np.hstack([
-            effnet_probs_for_meta, fb_probs['ef'], fb_probs['fl'],
-            fb_probs['lbp'], fb_probs['tf_sf']
-        ]).reshape(1, -1)
+        try:
+            meta_features = np.hstack([
+                effnet_probs_for_meta, fb_probs['ef'], fb_probs['fl'],
+                fb_probs['lbp'], fb_probs['tf_sf']
+            ]).reshape(1, -1)
 
-        final_prediction = self.meta_model.predict(meta_features)[0]
-        final_probability = self.meta_model.predict_proba(meta_features)[0]
+            final_prediction = self.meta_model.predict(meta_features)[0]
+            final_probability = self.meta_model.predict_proba(meta_features)[0]
 
-        result = {
-            "final_decision": "Fake" if final_prediction == 1 else "Real",
-            "final_probability": {'real_prob': float(final_probability[0]), 'fake_prob': float(final_probability[1])},
-            "base_models_prob": {
-                "ef_rf": {'real_prob': float(fb_probs['ef'][0]), 'fake_prob': float(fb_probs['ef'][1])},
-                "fl_rf": {'real_prob': float(fb_probs['fl'][0]), 'fake_prob': float(fb_probs['fl'][1])},
-                "lbp_cb": {'real_prob': float(fb_probs['lbp'][0]), 'fake_prob': float(fb_probs['lbp'][1])},
-                "tf_sf_cb": {'real_prob': float(fb_probs['tf_sf'][0]), 'fake_prob': float(fb_probs['tf_sf'][1])}
-            },
-            "specialized_effnet_prob": effnet_predictions
-        }
-        return result
+            result = {
+                "final_decision": "Fake" if final_prediction == 1 else "Real",
+                "final_probability": {'real_prob': float(final_probability[0]),
+                                      'fake_prob': float(final_probability[1])},
+                "base_models_prob": {
+                    "ef_rf": {'real_prob': float(fb_probs['ef'][0]), 'fake_prob': float(fb_probs['ef'][1])},
+                    "fl_rf": {'real_prob': float(fb_probs['fl'][0]), 'fake_prob': float(fb_probs['fl'][1])},
+                    "lbp_cb": {'real_prob': float(fb_probs['lbp'][0]), 'fake_prob': float(fb_probs['lbp'][1])},
+                    "tf_sf_cb": {'real_prob': float(fb_probs['tf_sf'][0]), 'fake_prob': float(fb_probs['tf_sf'][1])}
+                },
+                "specialized_effnet_prob": effnet_predictions
+            }
+            return result
+        except Exception as e:
+            logger.error(f"Ошибка в финальном мета-прогнозе: {e}")
+            raise SwappingError(f"Ошибка при формировании финального решения: {e}")

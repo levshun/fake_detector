@@ -56,7 +56,8 @@ def calculate_features_one(image_path: str) -> pd.DataFrame:
     logger.debug(f"Начало расчета признаков для изображения: {image_path}")
     image = cv2.imread(image_path)
     if image is None:
-        raise FeatureExtractionError(f"Не удалось прочитать изображение по пути: {image_path}")
+        logger.error(f"Не удалось прочитать изображение по пути: {image_path}")
+        raise FeatureExtractionError(f"Не удалось прочитать изображение: {image_path}")
 
     data_dict = {}
     with mp_face_mesh.FaceMesh(
@@ -66,6 +67,7 @@ def calculate_features_one(image_path: str) -> pd.DataFrame:
         results = face_mesh.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 
         if not results.multi_face_landmarks:
+            logger.error(f"MediaPipe не нашел лицо на изображении: {image_path}")
             raise FeatureExtractionError(f"MediaPipe не нашел лицо на изображении: {image_path}")
 
         face_landmarks = results.multi_face_landmarks[0]
@@ -98,10 +100,15 @@ def calculate_features_one(image_path: str) -> pd.DataFrame:
         feat_extr = FaceFeatureExtractor()
         try:
             custom_features = feat_extr.extract_features(image)
-            if custom_features:
-                for key, val in custom_features[0].items(): data_dict[key] = [val]
+            if not custom_features:
+                logger.error("FaceFeatureExtractor вернул пустой список признаков.")
+                raise ValueError("FaceFeatureExtractor вернул пустой список признаков.")
+
+            for key, val in custom_features[0].items(): data_dict[key] = [val]
+
         except Exception as e:
-            logger.warning(f"Ошибка при работе FaceFeatureExtractor: {e}")
+            logger.error(f"Критическая ошибка при извлечении структурных признаков (FaceFeatureExtractor): {e}")
+            raise FeatureExtractionError(f"Ошибка при извлечении структурных признаков лица: {e}")
 
         for i, point in enumerate(points):
             data_dict[str(i)] = [list(point)]
