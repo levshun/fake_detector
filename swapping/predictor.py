@@ -8,11 +8,100 @@ from catboost import CatBoostClassifier, CatBoostError
 import numpy as np
 import pandas as pd
 import logging
+import cv2
 
 from swapping.feature_calculator import calculate_features_one, flatten_landmarks
 from swapping.exceptions import ModelLoadingError
 
 logger = logging.getLogger(__name__)
+
+
+class FaceCropper:
+    def __init__(self, models_dir: str):
+        model_path = os.path.join(models_dir, 'face_detection_yunet_2023mar.onnx')
+        if not os.path.exists(model_path):
+            logger.error(f"Файл модели детекции лиц не найден: {model_path}")
+            raise FileNotFoundError(f"Отсутствует модель детекции лиц: {model_path}")
+
+        try:
+            self.face_detector = cv2.FaceDetectorYN.create(
+                model=model_path,
+                config='',
+                input_size=(320, 320),
+                score_threshold=0.5,
+                nms_threshold=0.3,
+                top_k=5000,
+                backend_id=cv2.dnn.DNN_BACKEND_DEFAULT,
+                target_id=cv2.dnn.DNN_TARGET_CPU
+            )
+        except Exception as e:
+            logger.error(f"Ошибка инициализации FaceDetectorYN: {e}")
+            raise RuntimeError(f"Ошибка инициализации FaceDetectorYN: {e}")
+
+    def crop_face(self, image: Image.Image) -> Image.Image:
+        if image is None:
+            return None
+
+        try:
+            frame = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+            h_orig, w_orig = frame.shape[:2]
+            self.face_detector.setInputSize((w_orig, h_orig))
+
+            _, faces = self.face_detector.detect(frame)
+
+            if faces is None or len(faces) == 0:
+                return None
+
+            face = max(faces, key=lambda f: f[14])
+            x, y, w, h = map(int, face[0:4])
+
+            margin = int(0.2 * max(w, h))
+            x = max(0, x - margin)
+            y = max(0, y - margin)
+            w = min(w_orig - x, w + 2 * margin)
+            h = min(h_orig - y, h + 2 * margin)
+
+            max_dim = max(w, h)
+            x_center = x + w // 2
+            y_center = y + h // 2
+
+            x1 = max(0, x_center - max_dim // 2)
+            y1 = max(0, y_center - max_dim // 2)
+            x2 = min(w_orig, x1 + max_dim)
+            y2 = min(h_orig, y1 + max_dim)
+
+            if x2 - x1 < max_dim:
+                x1 = max(0, x2 - max_dim)
+            if y2 - y1 < max_dim:
+                y1 = max(0, y2 - max_dim)
+
+            face_crop = frame[y1:y1 + max_dim, x1:x1 + max_dim]
+
+            if face_crop.size == 0:
+                return None
+
+            face_crop = cv2.cvtColor(face_crop, cv2.COLOR_BGR2RGB)
+            face_crop = cv2.resize(face_crop, (256, 256), interpolation=cv2.INTER_AREA)
+
+            return Image.fromarray(face_crop)
+
+        except Exception as e:
+            logger.warning(f"Ошибка при обрезке лица: {e}")
+            return None
+
+    def get_fallback_crop(self, image: Image.Image) -> Image.Image:
+        try:
+            img_array = np.array(image)
+            h, w = img_array.shape[:2]
+            size = min(h, w)
+            x = (w - size) // 2
+            y = (h - size) // 2
+            cropped = img_array[y:y + size, x:x + size]
+            cropped = cv2.resize(cropped, (256, 256), interpolation=cv2.INTER_AREA)
+            return Image.fromarray(cropped)
+        except Exception as e:
+            logger.error(f"Ошибка при создании fallback кропа: {e}")
+            return image.resize((256, 256))
 
 
 class DeepfakePredictor:
@@ -21,6 +110,8 @@ class DeepfakePredictor:
         logging.info(f"Используемое устройство: {self.device}")
 
         try:
+            self.face_cropper = FaceCropper(models_dir)
+
             fb_dir = os.path.join(models_dir, "feature_based")
             nn_dir = os.path.join(models_dir, "efficientnet")
 
@@ -44,7 +135,7 @@ class DeepfakePredictor:
                         model.load_state_dict(torch.load(model_path, map_location=self.device, weights_only=True))
                         model.eval()
                         self.effnet_models[tech_name] = model.to(self.device)
-        except (FileNotFoundError, CatBoostError, OSError) as e:
+        except (FileNotFoundError, CatBoostError, OSError, RuntimeError) as e:
             raise ModelLoadingError(f"Не удалось загрузить модель: {e}")
 
         self.transform = transforms.Compose([
@@ -77,24 +168,35 @@ class DeepfakePredictor:
 
         effnet_predictions = {}
         effnet_probs_for_meta = np.array([0.5, 0.5])
-        image = Image.open(image_path).convert('RGB')
-        image_tensor = self.transform(image).unsqueeze(0).to(self.device)
 
-        with torch.no_grad():
-            if self.effnet_models:
-                main_effnet_name = next(iter(self.effnet_models))
-                output = self.effnet_models[main_effnet_name](image_tensor)
-                effnet_probs_for_meta = torch.softmax(output, dim=1)[0].cpu().numpy()
+        try:
+            image = Image.open(image_path).convert('RGB')
 
-                for tech_name, model in self.effnet_models.items():
-                    if tech_name == main_effnet_name:
-                        prob = effnet_probs_for_meta
-                    else:
-                        output = model(image_tensor)
-                        prob = torch.softmax(output, dim=1)[0].cpu().numpy()
-                    effnet_predictions[tech_name] = {'real_prob': float(prob[0]), 'fake_prob': float(prob[1])}
-            else:
-                logging.warning("Модели EfficientNet не загружены.")
+            cropped_image = self.face_cropper.crop_face(image)
+            if cropped_image is None:
+                logger.info("Лицо не найдено, используется fallback кроп.")
+                cropped_image = self.face_cropper.get_fallback_crop(image)
+
+            image_tensor = self.transform(cropped_image).unsqueeze(0).to(self.device)
+
+            with torch.no_grad():
+                if self.effnet_models:
+                    main_effnet_name = next(iter(self.effnet_models))
+                    output = self.effnet_models[main_effnet_name](image_tensor)
+                    effnet_probs_for_meta = torch.softmax(output, dim=1)[0].cpu().numpy()
+
+                    for tech_name, model in self.effnet_models.items():
+                        if tech_name == main_effnet_name:
+                            prob = effnet_probs_for_meta
+                        else:
+                            output = model(image_tensor)
+                            prob = torch.softmax(output, dim=1)[0].cpu().numpy()
+                        effnet_predictions[tech_name] = {'real_prob': float(prob[0]), 'fake_prob': float(prob[1])}
+                else:
+                    logging.warning("Модели EfficientNet не загружены.")
+        except Exception as e:
+            logger.error(f"Ошибка при обработке изображения для EfficientNet: {e}")
+            effnet_probs_for_meta = np.array([0.5, 0.5])
 
         meta_features = np.hstack([
             effnet_probs_for_meta, fb_probs['ef'], fb_probs['fl'],
