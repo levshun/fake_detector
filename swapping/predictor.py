@@ -194,7 +194,6 @@ class DeepfakePredictor:
     def predict(self, image_path: str) -> dict:
         features_df = calculate_features_one(image_path)
 
-        # Этот метод теперь гарантированно выбросит понятное исключение, если признаков не хватает
         fb_probs = self._get_feature_based_probs(features_df)
 
         effnet_predictions = {}
