@@ -2,13 +2,14 @@ import os
 import torch
 import torch.nn as nn
 from torchvision import models, transforms
-from PIL import Image
+from PIL import Image, ImageOps
 import joblib
 from catboost import CatBoostClassifier, CatBoostError
 import numpy as np
 import pandas as pd
 import logging
 import cv2
+import time
 
 from swapping.feature_calculator import calculate_features_one, flatten_landmarks
 from swapping.exceptions import ModelLoadingError, FeatureExtractionError, SwappingError
@@ -139,7 +140,6 @@ class DeepfakePredictor:
                         model.eval()
                         self.effnet_models[tech_name] = model.to(self.device)
         except (FileNotFoundError, CatBoostError, OSError, RuntimeError) as e:
-            # Ловим стандартные ошибки и оборачиваем их в ModelLoadingError для единообразия
             raise ModelLoadingError(f"Не удалось загрузить модель: {e}")
 
         self.transform = transforms.Compose([
@@ -149,7 +149,6 @@ class DeepfakePredictor:
         ])
 
     def _validate_features(self, df: pd.DataFrame, required_features: list, model_name: str):
-        """Проверяет наличие необходимых колонок в DataFrame."""
         missing_features = [col for col in required_features if col not in df.columns]
         if missing_features:
             logger.error(f"Отсутствуют признаки для модели {model_name}: {missing_features}")
@@ -159,12 +158,10 @@ class DeepfakePredictor:
 
     def _get_feature_based_probs(self, df: pd.DataFrame) -> dict:
         try:
-            # RF EF
             self._validate_features(df, self.rf_ef.feature_names_in_, "RandomForest_EF")
             X_ef = df[self.rf_ef.feature_names_in_]
             prob_ef = self.rf_ef.predict_proba(X_ef)[0]
 
-            # RF FL (Landmarks)
             num_landmark_cols = len(df.filter(regex=r'^\d+$', axis=1).columns)
             df_landmarks = df.loc[:, '0':str(num_landmark_cols - 1)]
             X_fl_expanded = flatten_landmarks(df_landmarks)
@@ -173,12 +170,10 @@ class DeepfakePredictor:
             X_fl = X_fl_expanded[self.rf_fl.feature_names_in_]
             prob_fl = self.rf_fl.predict_proba(X_fl)[0]
 
-            # CatBoost LBP
             self._validate_features(df, self.cb_lbp.feature_names_, "CatBoost_LBP")
             X_lbp = df[self.cb_lbp.feature_names_]
             prob_lbp = self.cb_lbp.predict_proba(X_lbp)[0]
 
-            # CatBoost TF SF
             self._validate_features(df, self.cb_tf_sf.feature_names_, "CatBoost_TF_SF")
             X_tf_sf = df[self.cb_tf_sf.feature_names_]
             prob_tf_sf = self.cb_tf_sf.predict_proba(X_tf_sf)[0]
@@ -186,26 +181,33 @@ class DeepfakePredictor:
             return {'ef': prob_ef, 'fl': prob_fl, 'lbp': prob_lbp, 'tf_sf': prob_tf_sf}
 
         except KeyError as e:
-            # На случай, если что-то проскочило валидацию, но вызвало ошибку pandas
             raise FeatureExtractionError(f"Ошибка доступа к признакам при прогнозировании: {e}")
         except Exception as e:
             raise SwappingError(f"Ошибка при расчете вероятностей на основе признаков: {e}")
 
-    def predict(self, image_path: str) -> dict:
-        features_df = calculate_features_one(image_path)
+    def predict(self, image_path: str, debug: bool = False) -> dict:
+        features_df, timing_stats = calculate_features_one(image_path)
+
+        start_model_inference = time.perf_counter()
 
         fb_probs = self._get_feature_based_probs(features_df)
 
         effnet_predictions = {}
         effnet_probs_for_meta = np.array([0.5, 0.5])
+        cropped_image_for_debug = None
 
         try:
             image = Image.open(image_path).convert('RGB')
+            image = ImageOps.exif_transpose(image)
+            image = image.resize((178, 218))
 
             cropped_image = self.face_cropper.crop_face(image)
             if cropped_image is None:
                 logger.info("Лицо не найдено, используется fallback кроп.")
                 cropped_image = self.face_cropper.get_fallback_crop(image)
+
+            if debug:
+                cropped_image_for_debug = cropped_image
 
             image_tensor = self.transform(cropped_image).unsqueeze(0).to(self.device)
 
@@ -237,6 +239,8 @@ class DeepfakePredictor:
             final_prediction = self.meta_model.predict(meta_features)[0]
             final_probability = self.meta_model.predict_proba(meta_features)[0]
 
+            end_model_inference = time.perf_counter()
+
             result = {
                 "final_decision": "Fake" if final_prediction == 1 else "Real",
                 "final_probability": {'real_prob': float(final_probability[0]),
@@ -247,8 +251,17 @@ class DeepfakePredictor:
                     "lbp_cb": {'real_prob': float(fb_probs['lbp'][0]), 'fake_prob': float(fb_probs['lbp'][1])},
                     "tf_sf_cb": {'real_prob': float(fb_probs['tf_sf'][0]), 'fake_prob': float(fb_probs['tf_sf'][1])}
                 },
-                "specialized_effnet_prob": effnet_predictions
+                "specialized_effnet_prob": effnet_predictions,
+                "performance_metrics": {
+                    "std_features_time": timing_stats["std_features_time"],
+                    "custom_lib_time": timing_stats["custom_lib_time"],
+                    "model_inference_time": end_model_inference - start_model_inference
+                }
             }
+
+            if debug and cropped_image_for_debug is not None:
+                result['debug_crop'] = cropped_image_for_debug
+
             return result
         except Exception as e:
             logger.error(f"Ошибка в финальном мета-прогнозе: {e}")
