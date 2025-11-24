@@ -221,8 +221,8 @@ def _detect_face_with_yunet(image_path: Path) -> bool:
     """Lightweight face presence check using YuNet if available."""
     model_path = cli_main.ROOT_DIR / "swapping" / "face_detection_yunet_2023mar.onnx"
     if not model_path.is_file():
-        # модель не найдена, считаем что лицо есть, чтобы не блокировать анализ
-        return True
+        # модель не найдена — считаем, что лица нет, чтобы явно уведомить пользователя
+        return False
 
     try:
         img = cv2.imread(str(image_path))
@@ -243,8 +243,7 @@ def _detect_face_with_yunet(image_path: Path) -> bool:
         _, faces = face_detector.detect(img)
         return faces is not None and len(faces) > 0
     except Exception:
-        # в случае ошибки детектора не блокируем запуск
-        return True
+        return False
 
 
 
