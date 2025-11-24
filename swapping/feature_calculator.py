@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import ast
 import logging
+import time
 from scipy.spatial import ConvexHull
 from skimage.feature import local_binary_pattern, graycoprops, graycomatrix
 from skimage.util import img_as_ubyte
@@ -52,11 +53,14 @@ def extract_glcm_features(image, distances=[1], angles=[0, np.pi / 4, np.pi / 2,
     }
 
 
-def calculate_features_one(image_path: str) -> pd.DataFrame:
+def calculate_features_one(image_path: str) -> tuple:
+    start_total = time.perf_counter()
+
     logger.debug(f"Начало расчета признаков для изображения: {image_path}")
     image = cv2.imread(image_path)
     if image is None:
-        raise FeatureExtractionError(f"Не удалось прочитать изображение по пути: {image_path}")
+        logger.error(f"Не удалось прочитать изображение по пути: {image_path}")
+        raise FeatureExtractionError(f"Не удалось прочитать изображение: {image_path}")
 
     data_dict = {}
     with mp_face_mesh.FaceMesh(
@@ -66,6 +70,7 @@ def calculate_features_one(image_path: str) -> pd.DataFrame:
         results = face_mesh.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 
         if not results.multi_face_landmarks:
+            logger.error(f"MediaPipe не нашел лицо на изображении: {image_path}")
             raise FeatureExtractionError(f"MediaPipe не нашел лицо на изображении: {image_path}")
 
         face_landmarks = results.multi_face_landmarks[0]
@@ -95,20 +100,35 @@ def calculate_features_one(image_path: str) -> pd.DataFrame:
         for key, val in stat_dict.items(): data_dict[key] = [val]
         for key, val in texture_dict.items(): data_dict[key] = [val]
 
-        feat_extr = FaceFeatureExtractor()
-        try:
-            custom_features = feat_extr.extract_features(image)
-            if custom_features:
-                for key, val in custom_features[0].items(): data_dict[key] = [val]
-        except Exception as e:
-            logger.warning(f"Ошибка при работе FaceFeatureExtractor: {e}")
-
         for i, point in enumerate(points):
             data_dict[str(i)] = [list(point)]
 
+    end_standard = time.perf_counter()
+
+    feat_extr = FaceFeatureExtractor()
+    try:
+        custom_features = feat_extr.extract_features(image)
+        if not custom_features:
+            logger.error("FaceFeatureExtractor вернул пустой список признаков.")
+            raise ValueError("FaceFeatureExtractor вернул пустой список признаков.")
+
+        for key, val in custom_features[0].items(): data_dict[key] = [val]
+
+    except Exception as e:
+        logger.error(f"Критическая ошибка при извлечении структурных признаков (FaceFeatureExtractor): {e}")
+        raise FeatureExtractionError(f"Ошибка при извлечении структурных признаков лица: {e}")
+
+    end_custom = time.perf_counter()
+
     df = pd.DataFrame.from_dict(data_dict)
     logger.info(f"Расчет признаков завершен. Итоговый DataFrame содержит {len(df.columns)} столбцов.")
-    return df
+
+    timings = {
+        "std_features_time": end_standard - start_total,
+        "custom_lib_time": end_custom - end_standard
+    }
+
+    return df, timings
 
 
 def flatten_landmarks(df_landmarks: pd.DataFrame) -> pd.DataFrame:

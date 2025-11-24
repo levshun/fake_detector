@@ -9,6 +9,9 @@ from tkinter import filedialog, messagebox, ttk
 
 from PIL import Image, ImageTk
 
+import cv2
+import numpy as np
+
 from interface import main as cli_main
 
 
@@ -175,6 +178,14 @@ class App(ttk.Frame):
         if not path.is_file():
             messagebox.showwarning("Файл не найден", "Выберите существующий файл изображения.")
             return
+
+        has_face = _detect_face_with_yunet(path)
+        if not has_face:
+            messagebox.showinfo("Лицо не обнаружено", "На выбранном изображении лицо не найдено. Анализ пропущен.")
+            for card in self.cards.values():
+                card.update_state({"status": "skipped", "reason": "Лицо не найдено"})
+            return
+
         self.run_btn.configure(state="disabled")
         self.status_var.set("Выполняется...")
         for card in self.cards.values():
@@ -204,6 +215,36 @@ class App(ttk.Frame):
         # reload preview in case it was not loaded
         if self.image_obj is None:
             self._load_preview(path)
+
+
+def _detect_face_with_yunet(image_path: Path) -> bool:
+    """Lightweight face presence check using YuNet if available."""
+    model_path = cli_main.ROOT_DIR / "swapping" / "face_detection_yunet_2023mar.onnx"
+    if not model_path.is_file():
+        # модель не найдена, считаем что лицо есть, чтобы не блокировать анализ
+        return True
+
+    try:
+        img = cv2.imread(str(image_path))
+        if img is None:
+            return False
+        h, w = img.shape[:2]
+        face_detector = cv2.FaceDetectorYN.create(
+            model=str(model_path),
+            config="",
+            input_size=(w, h),
+            score_threshold=0.5,
+            nms_threshold=0.3,
+            top_k=1,
+            backend_id=cv2.dnn.DNN_BACKEND_DEFAULT,
+            target_id=cv2.dnn.DNN_TARGET_CPU,
+        )
+        face_detector.setInputSize((w, h))
+        _, faces = face_detector.detect(img)
+        return faces is not None and len(faces) > 0
+    except Exception:
+        # в случае ошибки детектора не блокируем запуск
+        return True
 
 
 

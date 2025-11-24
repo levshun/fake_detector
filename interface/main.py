@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 import io
 import time
+import csv
 from typing import Any, Dict, Iterable, List, Tuple
 
 os.environ.setdefault("MEDIAPIPE_DISABLE_GPU", "1")
@@ -26,6 +27,10 @@ DEFAULT_MODIFYING_MODEL = DEFAULT_MODIFYING_DIR / "binary" / "beauty_gan" / "eff
 DEFAULT_MODIFYING_ENSEMBLE = DEFAULT_MODIFYING_DIR / "ensembles" / "beautification_detection.json"
 LOG_PATH = ROOT_DIR / "run.log"
 TABL_PATH = ROOT_DIR / "tabl.log"
+TABL_CSV_PATH = ROOT_DIR / "table.csv"
+MOD_JSON_PATH = ROOT_DIR / "modifying.json"
+GEN_JSON_PATH = ROOT_DIR / "generating.json"
+SWAP_JSON_PATH = ROOT_DIR / "swapping.json"
 
 from generating.GeneratedImageDetector import GeneratedImageDetector
 from modifying.detection import start_model, start_ensemble
@@ -38,6 +43,7 @@ _MOD_CACHE: Dict[str, Any] = {}
 _GEN_CACHE: Dict[Tuple[str, str, str, str], Any] = {}
 _SWAP_CACHE: Dict[str, DeepfakePredictor] = {}
 _INIT_TIMINGS: Dict[str, float] = {"Modifying": 0.0, "Generating": 0.0, "Swapping": 0.0}
+_JSON_WRITERS: Dict[str, Any] = {}
 
 
 def parse_args() -> argparse.Namespace:
@@ -357,6 +363,82 @@ def _write_table_snapshot(rows: List[List[str]], headers: Iterable[str], file: i
     file.flush()
 
 
+def _write_csv_snapshot(rows: List[List[str]], headers: Iterable[str], file: io.TextIOBase) -> None:
+    file.seek(0)
+    file.truncate()
+    writer = csv.writer(file, delimiter=";")
+    writer.writerow(list(headers))
+    writer.writerows(rows)
+    file.flush()
+
+
+def _extract_decision_prob(title: str, result: Result) -> tuple[str, str]:
+    status = result.get("status")
+    if status == "ok":
+        data = result["data"]
+        if title == "Modifying":
+            label = data.get("label", "unknown")
+            is_fake = False
+            if isinstance(label, str) and label.lower() in {"modification", "fake"}:
+                is_fake = True
+            if isinstance(label, (int, float)) and label == 1:
+                is_fake = True
+            prob = data.get("probability")
+            if isinstance(prob, (int, float)):
+                fake_prob = float(prob) if is_fake else max(0.0, min(1.0, 1.0 - float(prob)))
+                return ("F" if is_fake else "R", f"{fake_prob:.4f}".replace(".", ","))
+            return ("F" if is_fake else "R", "-")
+        if title == "Generating":
+            prob = data.get("prob_of_fake")
+            label = data.get("is_fake")
+            dec = "F" if label else "R"
+            if isinstance(prob, (int, float)):
+                return dec, f"{float(prob):.4f}".replace(".", ",")
+            return dec, "-"
+        if title == "Swapping":
+            decision = data.get("final_decision")
+            dec = "F" if isinstance(decision, str) and decision.lower() == "fake" else "R"
+            final_prob = data.get("final_probability", {})
+            fake_prob = None
+            if isinstance(final_prob, dict):
+                fake_prob = final_prob.get("fake_prob")
+            if isinstance(fake_prob, (int, float)):
+                return dec, f"{float(fake_prob):.4f}".replace(".", ",")
+            return dec, "-"
+    if status == "skipped":
+        return ("S", "-")
+    return ("E", "-")
+
+
+def _extract_swap_extras(result: Result) -> list[str]:
+    placeholders = ["-"] * 8
+    if result.get("status") != "ok":
+        return placeholders
+    data = result.get("data", {})
+    base = data.get("base_models_prob", {})
+    effnet = data.get("specialized_effnet_prob", {})
+
+    def get_fake_prob(src: dict, key: str) -> str:
+        val = src.get(key)
+        if isinstance(val, dict):
+            fp = val.get("fake_prob")
+            if isinstance(fp, (int, float)):
+                return f"{fp:.4f}".replace(".", ",")
+        return "-"
+
+    bm_ef = get_fake_prob(base, "ef_rf")
+    bm_fl = get_fake_prob(base, "fl_rf")
+    bm_lbp = get_fake_prob(base, "lbp_cb")
+    bm_tf = get_fake_prob(base, "tf_sf_cb")
+
+    eff_seg = get_fake_prob(effnet, "segmind")
+    eff_git = get_fake_prob(effnet, "github")
+    eff_rgb = get_fake_prob(effnet, "rgb")
+    eff_roop = get_fake_prob(effnet, "roop")
+
+    return [bm_ef, bm_fl, bm_lbp, bm_tf, eff_seg, eff_git, eff_rgb, eff_roop]
+
+
 def _format_data(title: str, data: dict[str, Any], include_extras: bool = True) -> str:
     if title == "Modifying":
         label = data.get("label", "unknown")
@@ -390,9 +472,7 @@ def _format_data(title: str, data: dict[str, Any], include_extras: bool = True) 
                 if isinstance(decision, str) and decision.lower() == "fake":
                     prob_value = final_prob.get("fake_prob")
                 elif isinstance(decision, str) and decision.lower() == "real":
-                    prob_value = final_prob.get("real_prob")
-                if prob_value is None:
-                    prob_value = final_prob.get("fake_prob") or final_prob.get("real_prob")
+                    prob_value = final_prob.get("fake_prob")
             extras: list[str] = []
             if include_extras:
                 # Base models fake probabilities
@@ -450,6 +530,7 @@ def _print_init_timings() -> None:
     for title, value in _INIT_TIMINGS.items():
         print(f"  {title[:4]:<4}: {value:.3f}")
 
+
 def _format_hms(seconds: float) -> str:
     total = int(seconds)
     hours, rem = divmod(total, 3600)
@@ -474,6 +555,10 @@ def _print_json(title: str, result: Result, image_path: Path) -> None:
         return
     payload = {"module": title, "image": str(image_path), **result["data"]}
     print(json.dumps(payload, ensure_ascii=False))
+    writer = _JSON_WRITERS.get(title)
+    if writer:
+        writer.write(json.dumps(payload, ensure_ascii=False) + "\n")
+        writer.flush()
 
 
 class _Tee(io.TextIOBase):
@@ -493,6 +578,13 @@ class _Tee(io.TextIOBase):
 def main() -> None:
     log_file = LOG_PATH.open("w", encoding="utf-8")
     tabl_file = TABL_PATH.open("w", encoding="utf-8")
+    tabl_csv_file = TABL_CSV_PATH.open("w", encoding="utf-8", newline="")
+    json_files = {
+        "Modifying": MOD_JSON_PATH.open("w", encoding="utf-8"),
+        "Generating": GEN_JSON_PATH.open("w", encoding="utf-8"),
+        "Swapping": SWAP_JSON_PATH.open("w", encoding="utf-8"),
+    }
+    _JSON_WRITERS.update(json_files)
     original_stdout, original_stderr = sys.stdout, sys.stderr
     sys.stdout = _Tee(sys.stdout, log_file)
     sys.stderr = _Tee(sys.stderr, log_file)
@@ -508,8 +600,29 @@ def main() -> None:
             _warm_up(args)
             rows_display: List[List[str]] = []
             rows_log: List[List[str]] = []
+            rows_csv: List[List[str]] = []
             total = len(images)
             headers = ["Image", "Mod", "t_mod", "Gen", "t_gen", "Swap", "t_swap"]
+            headers_csv = [
+                "Image",
+                "Mod_dec",
+                "Mod_p",
+                "t_mod",
+                "Gen_dec",
+                "Gen_p",
+                "t_gen",
+                "Swap_dec",
+                "Swap_p",
+                "Swap_bm_ef",
+                "Swap_bm_fl",
+                "Swap_bm_lbp",
+                "Swap_bm_tf",
+                "Swap_eff_seg",
+                "Swap_eff_git",
+                "Swap_eff_rgb",
+                "Swap_eff_roop",
+                "t_swap",
+            ]
             processed_count = 0
             total_elapsed_images = 0.0
             for idx, image in enumerate(images, 1):
@@ -537,21 +650,33 @@ def main() -> None:
                     _print_json(title, result, image)
                 row_display = [image.name]
                 row_log = [str(image)]
+                row_csv = [str(image)]
                 for title, result in sections:
                     row_display.append(_summarize_result(title, result, include_extras=False))
                     row_display.append(_format_elapsed(result))
                     row_log.append(_summarize_result(title, result, include_extras=True))
                     row_log.append(_format_elapsed(result))
+                    dec, prob = _extract_decision_prob(title, result)
+                    if title == "Modifying":
+                        row_csv.extend([dec, prob, _format_elapsed(result)])
+                    elif title == "Generating":
+                        row_csv.extend([dec, prob, _format_elapsed(result)])
+                    elif title == "Swapping":
+                        extras = _extract_swap_extras(result)
+                        row_csv.extend([dec, prob, *extras, _format_elapsed(result)])
                 rows_display.append(row_display)
                 rows_log.append(row_log)
+                rows_csv.append(row_csv)
                 image_elapsed = time.perf_counter() - image_start
                 total_elapsed_images += image_elapsed
                 processed_count += 1
                 _write_table_snapshot(rows_log, headers, tabl_file)
+                _write_csv_snapshot(rows_csv, headers_csv, tabl_csv_file)
             _print_init_timings()
             _print_table(rows_display, headers)
             _print_table(rows_log, headers, file=log_file)
             _write_table_snapshot(rows_log, headers, tabl_file)
+            _write_csv_snapshot(rows_csv, headers_csv, tabl_csv_file)
         else:
             sections = _run_all(args.image, args)
             print()
@@ -563,10 +688,16 @@ def main() -> None:
         sys.stderr.flush()
         log_file.flush()
         tabl_file.flush()
+        tabl_csv_file.flush()
+        for writer in json_files.values():
+            writer.flush()
         sys.stdout = original_stdout
         sys.stderr = original_stderr
         log_file.close()
         tabl_file.close()
+        tabl_csv_file.close()
+        for writer in json_files.values():
+            writer.close()
 
 
 if __name__ == "__main__":
