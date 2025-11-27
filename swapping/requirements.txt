@@ -1,10 +1,12 @@
 torch
 torchvision
 pandas
-scikit-learn
+scikit-learn==1.6.1
 catboost
 joblib
 opencv-python
 mediapipe
 scikit-image
 Pillow
+dlib
+timm

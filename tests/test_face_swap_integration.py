@@ -7,7 +7,7 @@ class TestIntegration(unittest.TestCase):
 
     def setUp(self):
         self.models_directory = 'swapping/models'
-        self.test_image_path = 'tests/face_swap_test_data/real.jpg'
+        self.test_image_path = 'tests/dataset_test_fake_2/bad_1.png'
 
     def test_full_pipeline_on_real_image(self):
         self.assertTrue(os.path.exists(self.models_directory), "Папка с моделями 'models' не найдена в корне проекта")
@@ -17,6 +17,7 @@ class TestIntegration(unittest.TestCase):
             predictor = DeepfakePredictor(models_dir=self.models_directory)
             result = predictor.predict(image_path=self.test_image_path)
 
+            print(result)
             self.assertIsInstance(result, dict)
             self.assertIn("final_decision", result)
             self.assertIn("final_probability", result)
