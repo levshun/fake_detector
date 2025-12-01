@@ -1,12 +1,45 @@
-import os
 import json
-import numpy as np
+import os
+import time
 from copy import copy
+
 import joblib
+import numpy as np
 from scipy import stats
+
 from modifying.classifier import ModClassifier
-from preprocessing.feature_extraction import load_img, resize_img, extract_lbp_features, extract_hog_features, \
-    extract_face_landmarks
+from preprocessing.feature_extraction import (
+    extract_face_landmarks,
+    extract_hog_features,
+    extract_lbp_features,
+    load_img,
+    resize_img,
+)
+
+
+class _TimingLogger:
+    """Helper to print timings when env flag allows."""
+
+    def __init__(self) -> None:
+        flag = os.environ.get("MODIFYING_TIMING", "1").strip().lower()
+        self.enabled = flag not in {"0", "false", "off"}
+
+    def log(self, label: str, elapsed: float) -> None:
+        if self.enabled:
+            print(f"[ModifyingTiming] {label}: {elapsed:.3f}s")
+
+    def measure(self, label: str):
+        start = time.perf_counter()
+
+        class _Context:
+            def __enter__(self_nonlocal):
+                return None
+
+            def __exit__(self_nonlocal, exc_type, exc, tb):
+                self.log(label, time.perf_counter() - start)
+                return False
+
+        return _Context()
 
 
 class ModDetector:
@@ -22,9 +55,12 @@ class ModDetector:
 
     def __init__(self, model_path: str):
         self.model_path = model_path
+        self._timings = _TimingLogger()
+        init_start = time.perf_counter()
         self.clf_model = self._get_model()
         self.feature_type, self.feature_params = self._get_feature_type()
         self.pca_model = self._get_pca_model()
+        self._timings.log(f"init:{os.path.basename(model_path)}", time.perf_counter() - init_start)
 
     def _get_model(self):
         if os.path.exists(f'{os.path.dirname(self.model_path)}/class.json'):
@@ -76,41 +112,49 @@ class ModDetector:
         return self.clf_model._get_model_input_shape()
 
     def prepare_data(self, img_path: str) -> np.ndarray | None:
+        total_start = time.perf_counter()
         input_shape = self._get_input_shape()
 
         if self.feature_type == 'face_landmarks':
-            data = load_img(img_path, as_mediapipe_image=True)
-            data = extract_face_landmarks(data, **self.feature_params)
+            with self._timings.measure("prepare:face_landmarks"):
+                data = load_img(img_path, as_mediapipe_image=True)
+                data = extract_face_landmarks(data, **self.feature_params)
             if data is None:
                 return None
 
         elif self.feature_type == 'lbp':
-            data = load_img(img_path, as_gray=True)
-            if (self.feature_params.get('histogram') in [None, False]) and (data.shape != input_shape):
-                data = resize_img(data, input_shape)
-            data = extract_lbp_features(data, **self.feature_params)
+            with self._timings.measure("prepare:lbp"):
+                data = load_img(img_path, as_gray=True)
+                if (self.feature_params.get('histogram') in [None, False]) and (data.shape != input_shape):
+                    data = resize_img(data, input_shape)
+                data = extract_lbp_features(data, **self.feature_params)
             if self.pca_model is not None:
-                data = self.pca_model.transform(data.reshape(1, -1))
+                with self._timings.measure("prepare:pca"):
+                    data = self.pca_model.transform(data.reshape(1, -1))
 
         elif self.feature_type == 'hog':
-            data = load_img(img_path, as_gray=True)
-            if 'input_size' in self.feature_params:
-                if data.shape != self.feature_params['input_size']:
-                    data = resize_img(data, self.feature_params['input_size'])
-                feature_params = {k: v for k, v in self.feature_params.items() if k != 'input_size'}
-            else:
-                feature_params = copy(self.feature_params)
+            with self._timings.measure("prepare:hog"):
+                data = load_img(img_path, as_gray=True)
+                if 'input_size' in self.feature_params:
+                    if data.shape != self.feature_params['input_size']:
+                        data = resize_img(data, self.feature_params['input_size'])
+                    feature_params = {k: v for k, v in self.feature_params.items() if k != 'input_size'}
+                else:
+                    feature_params = copy(self.feature_params)
 
-            data = extract_hog_features(data, **feature_params)
+                data = extract_hog_features(data, **feature_params)
             if self.pca_model is not None:
-                data = self.pca_model.transform(data.reshape(1, -1))[0]
+                with self._timings.measure("prepare:pca"):
+                    data = self.pca_model.transform(data.reshape(1, -1))[0]
 
         else:
-            data = load_img(img_path, as_gray=False)
-            if data.shape != input_shape:
-                data = resize_img(data, input_shape[:-1])
+            with self._timings.measure("prepare:plain"):
+                data = load_img(img_path, as_gray=False)
+                if data.shape != input_shape:
+                    data = resize_img(data, input_shape[:-1])
 
         data = np.expand_dims(data, axis=0)
+        self._timings.log("prepare:total", time.perf_counter() - total_start)
         return data
 
     def run(self, img_path: str) -> dict:
@@ -121,8 +165,12 @@ class ModDetector:
         Return:
             Dict, modification labels and their probabilities corresponding to input images.
         """
+        total_start = time.perf_counter()
         data = self.prepare_data(img_path)
+        inference_start = time.perf_counter()
         output = self.clf_model.predict(data, [img_path])[0]
+        self._timings.log("run:predict", time.perf_counter() - inference_start)
+        self._timings.log("run:total", time.perf_counter() - total_start)
         return output
 
     def set_label_encoding(self, encoding: bool):
