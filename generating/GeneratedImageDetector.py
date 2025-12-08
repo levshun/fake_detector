@@ -13,6 +13,8 @@ import torch
 from PIL import Image
 from torchvision import transforms
 
+from preprocessing.generating_features import build_features_from_scores
+
 Image.MAX_IMAGE_PIXELS = None
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -123,19 +125,12 @@ class GeneratedImageDetector:
             img = img.convert("RGB")
         return img
 
-    @staticmethod
-    def _stats(values: Iterable[float]) -> np.ndarray:
-        arr = np.asarray(list(values), dtype=float)
-        return np.array([arr.min(), arr.max(), arr.mean(), np.median(arr), arr.var()], dtype=float)
-
     def get_features(
         self,
         scores_model_vit: Iterable[float],
         scores_model_convnext: Iterable[float],
     ) -> np.ndarray:
-        vit = np.asarray(list(scores_model_vit), dtype=float)
-        conv = np.asarray(list(scores_model_convnext), dtype=float)
-        return np.concatenate((self._stats(vit), self._stats(conv), self._stats(vit + conv)))
+        return build_features_from_scores(scores_model_vit, scores_model_convnext)
 
     def get_model_scores(self, img_path: str | Path) -> tuple[list[float], list[float]]:
         total_start = time.perf_counter()

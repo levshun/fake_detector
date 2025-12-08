@@ -1,7 +1,7 @@
 import os
 import csv
 import time
-from face_feature_extractor_main import FaceFeatureExtractor
+from preprocessing.face_feature_extractor_main import FaceFeatureExtractor
 
 def format_time(seconds: float) -> str:
     """
