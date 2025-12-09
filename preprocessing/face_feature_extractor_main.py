@@ -1,28 +1,44 @@
+import os
+from pathlib import Path
+
 import cv2
 import dlib
 
-from geometry import extract_geometry_features
-from color_texture import extract_color_texture_features
-from frequency_artifacts import extract_frequency_artifacts_features
-from perceptual_analysis import extract_perceptual_features
-from eye_reflections import extract_eye_reflection_features
-from hair_structure import extract_hair_structure_features
-from perspective_depth import extract_perspective_depth_features
+from preprocessing.geometry import extract_geometry_features
+from preprocessing.color_texture import extract_color_texture_features
+from preprocessing.frequency_artifacts import extract_frequency_artifacts_features
+from preprocessing.perceptual_analysis import extract_perceptual_features
+from preprocessing.eye_reflections import extract_eye_reflection_features
+from preprocessing.hair_structure import extract_hair_structure_features
+from preprocessing.perspective_depth import extract_perspective_depth_features
+
+_DEFAULT_PREDICTOR = Path(__file__).resolve().parent.parent / "swapping" / "shape_predictor_68_face_landmarks.dat"
+
 
 class FaceFeatureExtractor:
-    def __init__(self, predictor_path="shape_predictor_68_face_landmarks.dat"):
-        self.detector = dlib.get_frontal_face_detector()
-        self.predictor = dlib.shape_predictor(predictor_path)
+    """
+    Извлекает совокупность признаков лица, опираясь на dlib landmarks.
 
-    def extract_features(self, image_path):
-        image = cv2.imread(image_path)
+    Принимает как путь к изображению, так и уже загруженный BGR numpy массив.
+    """
+
+    def __init__(self, predictor_path: str | os.PathLike | None = None):
+        predictor = Path(predictor_path) if predictor_path else _DEFAULT_PREDICTOR
+        self.detector = dlib.get_frontal_face_detector()
+        self.predictor = dlib.shape_predictor(str(predictor))
+
+    def _load_image(self, image_or_path):
+        if isinstance(image_or_path, (str, os.PathLike)):
+            return cv2.imread(str(image_or_path))
+        return image_or_path
+
+    def extract_features(self, image_or_path):
+        image = self._load_image(image_or_path)
         if image is None:
-            print("Ошибка загрузки изображения:", image_path)
             return None
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         faces = self.detector(gray)
         if len(faces) == 0:
-            print("Лица не обнаружены на изображении:", image_path)
             return None
 
         features_list = []
