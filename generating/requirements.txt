@@ -1,7 +1,0 @@
-torch
-torchvision
-timm
-Pillow
-numpy
-scikit-learn
-pytest

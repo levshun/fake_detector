@@ -1,5 +1,4 @@
-from __future__ import annotations
-
+import os
 import argparse
 import json
 import threading
@@ -9,12 +8,12 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 from PIL import Image, ImageTk
-
 import cv2
-import numpy as np
 
-from interface import main as cli_main
-from reporting import generate_pdf_report, generate_text_report
+from interface.demo import _format_data, _run_all
+import detect_ai as dai
+
+DEFAULT_SWAPPING_DIR = os.path.join('..', 'models', 'swapping')
 
 
 def _build_args(image_path: Path) -> argparse.Namespace:
@@ -30,7 +29,7 @@ def _build_args(image_path: Path) -> argparse.Namespace:
         generating_classifier=None,
         generating_device=None,
         skip_generating=False,
-        swapping_models_dir=cli_main.ROOT_DIR / "models" / "swapping",
+        swapping_models_dir=DEFAULT_SWAPPING_DIR,
         skip_swapping=False,
     )
 
@@ -46,11 +45,11 @@ class ModuleCard(ttk.Frame):
         self.status_bar = tk.Canvas(self, width=6, height=60, highlightthickness=0)
         self.status_bar.grid(row=0, column=0, rowspan=2, sticky="nsw", padx=(0, 8))
 
-        self.title_lbl = ttk.Label(self, text=title, font=("Helvetica", 12, "bold"))
+        self.title_lbl = ttk.Label(self, text=title, font=("Arial", 12, "bold"))
         self.title_lbl.grid(row=0, column=1, sticky="w")
 
         self.result_var = tk.StringVar(value="—")
-        self.result_lbl = ttk.Label(self, textvariable=self.result_var, font=("Helvetica", 11))
+        self.result_lbl = ttk.Label(self, textvariable=self.result_var, font=("Arial", 11))
         self.result_lbl.grid(row=1, column=1, sticky="w")
 
         self.time_var = tk.StringVar(value="")
@@ -84,7 +83,7 @@ class ModuleCard(ttk.Frame):
         summary = ""
 
         if status == "ok":
-            summary = cli_main._format_data(self.title, result["data"], include_extras=False)
+            summary = _format_data(self.title, result["data"], include_extras=False)
             self.detail_btn.configure(state="normal")
             color = "#2e7d32" if "F" not in summary else "#c62828"
         elif status == "skipped":
@@ -262,7 +261,9 @@ class App(ttk.Frame):
         """Run detectors in a worker thread and propagate results."""
         try:
             args = _build_args(path)
-            results = cli_main._run_all(path, args)
+            print('args:', args)
+            print('path:', path)
+            results = _run_all(path, args)
             # update UI on main thread
             self.after(0, self._update_results, path, results, None)
         except Exception as exc:  # noqa: BLE001
@@ -301,7 +302,7 @@ class App(ttk.Frame):
         label, conf = self._derive_overall_label_conf(modules)
         metadata = self._extract_image_metadata(self.last_image_path)
         self.last_metadata = metadata
-        return generate_text_report(
+        return dai.generate_text_report(
             result_label=label,
             confidence=conf,
             module_details=modules,
@@ -439,7 +440,7 @@ class App(ttk.Frame):
         if not save_path:
             return
         try:
-            generate_pdf_report(self.last_report_text, self.last_image_path, save_path)
+            dai.generate_pdf_report(self.last_report_text, self.last_image_path, save_path)
             messagebox.showinfo("Успех", f"PDF сохранён: {save_path}")
         except ImportError as exc:
             messagebox.showerror(
@@ -452,8 +453,8 @@ class App(ttk.Frame):
 
 def _detect_face_with_yunet(image_path: Path) -> bool:
     """Lightweight face presence check using YuNet if available."""
-    model_path = cli_main.ROOT_DIR / "swapping" / "face_detection_yunet_2023mar.onnx"
-    if not model_path.is_file():
+    model_path = os.path.join(DEFAULT_SWAPPING_DIR, "face_detection_yunet_2023mar.onnx")
+    if not os.path.isfile(model_path):
         # модель не найдена — считаем, что лица нет, чтобы явно уведомить пользователя
         return False
 
