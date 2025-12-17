@@ -9,6 +9,12 @@ The developed library fulfills 3 main detection tasks:
 - **Swapping**: detection of images containing a person's face with a faceswap.
 </p>
 
+<h3 align="left">Documentation</h3>
+<p align="left">
+
+Online documentation is available at ReadtheDocs: https://fake-detector.readthedocs.io.
+</p>
+
 <h3 align="left">Installation</h3>
 <p align="left">
 
