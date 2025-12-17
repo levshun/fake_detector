@@ -5,12 +5,10 @@ build-backend = "hatchling.build"
 [project]
 name = "detect_ai"
 version = "2025.0.1"
-dependencies = [
-  "httpx",
-  "gidgethub[httpx]>4.0.0",
-  "django>2.1; os_name != 'nt'",
-  "django>2.0; os_name == 'nt'",
-]
+dynamic = ["dependencies"]
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
 requires-python = ">=3.11.0,<3.11.1"
 authors = [
   {name = "Dmitry Levshun"},
@@ -30,27 +28,10 @@ license-files = ["LICEN[CS]E.*"]
 keywords = ["ai", "deepfake"]
 classifiers = [
   "Development Status :: 4 - Beta",
-  "Programming Language :: Python"
-]
-
-[project.optional-dependencies]
-gui = ["PyQt5"]
-cli = [
-  "rich",
-  "click",
+  "Programming Language :: Python :: 3.11"
 ]
 
 [project.urls]
 Documentation = "https://fake-detector.readthedocs.io/"
 Repository = "https://github.com/levshun/fake_detector.git"
 "Bug Tracker" = "https://github.com/levshun/fake_detector/issues"
-#Changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
-
-#[project.scripts]
-#spam-cli = "spam:main_cli"
-#
-#[project.gui-scripts]
-#spam-gui = "spam:main_gui"
-#
-#[project.entry-points."spam.magical"]
-#tomatoes = "spam:main_tomatoes"
