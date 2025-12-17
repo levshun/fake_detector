@@ -41,8 +41,11 @@ class ModDetector:
 
     Params:
         clf_model: ModClassifier object, classifier.
+
         feature_type: String, type of feature extraction to use ('lbp', 'hog', 'facial_landmarks' or None).
+
         feature_params: Dict, parameters for feature extraction.
+
         pca_model: sklearn PCA, model for principal component analysis.
     """
 
@@ -153,8 +156,10 @@ class ModDetector:
     def run(self, img_path: str) -> dict:
         """
         Detecting modifications in facial images.
+
         Args:
             img_path: String, path to image to be detected.
+
         Return:
             Dict, modification labels and their probabilities corresponding to input images.
         """
@@ -170,6 +175,7 @@ class ModDetector:
         """
         Set label encoding for image data or delete.
         If encoding is set to true, read labels from 'class.json' in model path.
+
         Params:
             encoding: Boolean, whether to set label encoding or not.
         """
@@ -185,10 +191,11 @@ class ModDetector:
 
 class ModVotingDetector:
     """
-     Facial Image Modification Voting Detector.
+    Facial Image Modification Voting Detector.
 
     Params:
         ensemble_models: Dict, dictionary in format {model_path: ModClassifier}.
+
         class_indices: Dict, class indices to label encoding in format {class_id: class_label}.
     """
 
@@ -202,9 +209,12 @@ class ModVotingDetector:
     def run(self, img_path: str, voting='hard') -> dict:
         """
         Detecting modifications in facial image.
+
         Args:
             img_path: String, path to image to be detected.
+
             voting: String, type of voting ('hard' or 'soft').
+
         Return:
             Dict, modification labels and their probabilities corresponding to input images.
         """
@@ -255,6 +265,7 @@ class ModVotingDetector:
         """
         Set label encoding for image data or delete.
         If encoding is set to true, read labels from 'class.json' in models path.
+
         Params:
             encoding: Boolean, whether to set label encoding or not.
         """
@@ -275,8 +286,10 @@ class ModVotingDetector:
 def start_model(model_path: str) -> ModDetector:
     """
     Load trained model from disk.
+
     Args:
         model_path: String or List, path to trained model or several models (for ensemble).
+
     Return:
         ModDetector, object for modification detection.
     """
@@ -307,8 +320,10 @@ def start_model(model_path: str) -> ModDetector:
 def start_ensemble(ensemble_info: dict) -> ModVotingDetector:
     """
     Load ensemble model from JSON-file configuration.
+
     Args:
         ensemble_info: ensemble configuration dict.
+
     Return:
         ModDetector, object for modification detection.
     """

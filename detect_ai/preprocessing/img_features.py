@@ -12,14 +12,15 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from mediapipe.framework.formats import landmark_pb2
 from mediapipe import solutions
-import pandas as pd
 
 
 class Images:
     """
     Class to handle images read from local disk.
+
     Attributes:
         X: array of images.
+
         y: array of image labels.
     """
     def __init__(self,
@@ -31,11 +32,17 @@ class Images:
                  normalize: bool = True):
         """
         Initialize the Images class.
+
         :param paths: path(s) to images.
+
         :param labels: label(s) of images.
+
         :param as_gray: if true, convert images to grayscale.
+
         :param blurred_sigma: if given, apply blurred filter.
+
         :param resize_shape: if given, resize image.
+
         :param normalize: if true, normalize images.
         """
         self.X = None
@@ -51,8 +58,11 @@ class Images:
     def load(self, paths, labels, as_gray):
         """
         Load images from local disk.
+
         :param paths: path(s) to images.
+
         :param labels: label(s) of images.
+
         :param as_gray: if true, convert images to grayscale.
         """
         self.X = []
@@ -72,6 +82,7 @@ class Images:
     def blurred(self, sigma=1):
         """
         Blurred the images.
+
         :param sigma: standard deviation for Gaussian kernel.
         """
         for i in range(len(self.X)):
@@ -80,6 +91,7 @@ class Images:
     def resize(self, output_shape=(150, 150)):
         """
         Resize the images.
+
         :param output_shape: resized image shape
         """
         for i in range(len(self.X)):
@@ -96,9 +108,12 @@ class Images:
 class MPImages:
     """
     Class for Mediapipe image.
+
     Attributes:
         X: array of Mediapipe images.
+
         y: array of image labels.
+
         landmarks: face landmarks for images.
     """
     def __init__(self,
@@ -106,7 +121,9 @@ class MPImages:
                  labels: int | list = 0):
         """
         Initialize the Images class.
+
         :param paths: path(s) to images.
+
         :param labels: label(s) of images.
         """
         self.X = None
@@ -117,7 +134,9 @@ class MPImages:
     def load(self, paths, labels):
         """
         Load images from local disk.
+
         :param paths: path(s) to images.
+
         :param labels: label(s) of images.
         """
         self.X = []
@@ -152,6 +171,7 @@ class MPImages:
     def get_landmark_frames(self) -> np.ndarray | None:
         """
         Convert all face landmarks into numpy arrays.
+
         :return: array of landmarks as frames.
         """
         result = []
@@ -166,6 +186,7 @@ class MPImages:
     def draw_landmarks(self, index=0):
         """
         Draw face landmarks.
+
         :param index: number of images to draw.
         """
         landmarks = self.landmarks[index]
@@ -210,10 +231,14 @@ class MPImages:
 class FeatureSamples:
     """
     Class to generate feature samples.
+
     Attributes:
         X_train: train image sample.
+
         X_test: test image sample.
+
         y_train: train label sample.
+
         y_test: test label sample.
     """
     def __init__(self, X, y, train_size=0.8):
@@ -227,8 +252,10 @@ class FeatureSamples:
 class LBPFeatures:
     """
     Class to generate local binary pattern (LBP) features.
+
     Attributes:
         values: Local Binary Pattern
+
         histograms: Local Binary Pattern h
     """
     def __init__(self, data: np.ndarray,
@@ -237,9 +264,13 @@ class LBPFeatures:
                  method='uniform'):
         """
         Initializes LBP features object.
+
         :param data: images.
+
         :param n_points: number of circularly symmetric neighbor set points.
+
         :param radius: radius of circle.
+
         :param method: method to determine the pattern.
         """
         self.values = []
@@ -256,7 +287,9 @@ class LBPFeatures:
              type='image'):
         """
         Shows LBP features.
+
         :param index: number of image to show.
+
         :param type: show 'image' or 'histogram'.
         """
         if type == 'image':
@@ -269,8 +302,10 @@ class LBPFeatures:
 class HOGFeatures:
     """
     Class to handle HOG features extracted from images.
+
     Attributes:
         values: list of HOG features.
+
         images: list of images of the HOG.
     """
     def __init__(self,
@@ -282,11 +317,17 @@ class HOGFeatures:
                  feature_vector=True):
         """
         Initializes HOG features.
+
         :param data:
+
         :param orientations: number of orientation bins.
+
         :param pixels_per_cell: size (in pixels) of a cell.
+
         :param cells_per_block:  number of cells in each block.
+
         :param block_norm: block normalization method.
+
         :param feature_vector: if True, return the data as a flat feature vector.
         """
         self.values = []
@@ -302,6 +343,7 @@ class HOGFeatures:
     def show(self, index=0):
         """
         Show HOG image.
+
         :param index: number of images to show.
         """
         plt.imshow(self.images[index])
@@ -310,9 +352,13 @@ class HOGFeatures:
 def load_img(filename, as_gray=True, as_mediapipe_image=False):
     """
     Load an image from disk.
+
     :param filename: name of the image.
+
     :param as_gray: if True, the image is converted to grayscale (not available for Mediapipe image).
+
     :param as_mediapipe_image: if True, the image load as Mediapipe image.
+
     :return: the loaded image.
     """
     if as_mediapipe_image:
@@ -323,8 +369,11 @@ def load_img(filename, as_gray=True, as_mediapipe_image=False):
 def blurring(img, sigma=1):
     """
     Blur the image.
+
     :param img: image.
+
     :param sigma: standard deviation for Gaussian kernel.
+
     :return: blurred image.
     """
     return filters.gaussian(img, sigma=sigma)
@@ -333,8 +382,11 @@ def blurring(img, sigma=1):
 def resize_img(img, output_shape=(150, 150)):
     """
     Resize the image.
+
     :param img: image.
+
     :param output_shape: resized image shape.
+
     :return: resized image.
     """
     return resize(img, output_shape)
@@ -343,7 +395,9 @@ def resize_img(img, output_shape=(150, 150)):
 def normalize_img(img):
     """
     Normalize the image.
+
     :param img: image.
+
     :return: normalized image.
     """
     return img / 255.0
@@ -356,11 +410,17 @@ def extract_lbp_features(img: np.ndarray,
                          histogram: bool = False) -> np.ndarray | tuple:
     """
     Extract the local binary patterns (LBP) from an image.
+
     :param img: image.
+
     :param n_points: number of circularly symmetric neighbor set points.
+
     :param radius: radius of circle.
+
     :param method: method to determine the pattern.
+
     :param histogram: if true, LBP histogram returned.
+
     :return: LBP features and their corresponding histograms (if histogram).
     """
     lbp_img = local_binary_pattern(img, n_points, radius, method)
@@ -380,13 +440,21 @@ def extract_hog_features(img,
                          feature_vector=True):
     """
     Extract Histogram of Oriented Gradients (HOG) for a given image.
+
     :param img: image.
+
     :param orientations: number of orientation bins.
+
     :param pixels_per_cell: size (in pixels) of a cell.
+
     :param cells_per_block:  number of cells in each block.
+
     :param block_norm: block normalization method.
+
     :param visualize: if True, return an image of the HOG.
+
     :param feature_vector: if True, return the data as a flat feature vector.
+
     :return: HOG features.
     """
     return hog(img, orientations=orientations, pixels_per_cell=pixels_per_cell, cells_per_block=cells_per_block,
@@ -397,8 +465,11 @@ def extract_face_landmarks(img: mp.Image,
                            model_asset_path='face_landmarker_v2_with_blendshapes.task'):
     """
     Extract face landmarks from an image.
+
     :param img: Mediapipe image.
+
     :param model_asset_path: path to model assets.
+
     :return: FaceLandmarker object
     """
     base_options = python.BaseOptions(model_asset_path=model_asset_path)

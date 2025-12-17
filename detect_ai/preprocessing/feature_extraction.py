@@ -14,10 +14,14 @@ import numpy as np
 def load_img(filename, as_gray=True, as_mediapipe_image=False) -> np.ndarray:
     """
     Load an image from disk.
+
     Args:
         filename: String, name of the image.
+
         as_gray: Boolean, if True, the image is converted to grayscale (not available for Mediapipe image).
+
         as_mediapipe_image: Boolean, if True, the image load as Mediapipe image.
+
     Return:
         Array, the loaded image.
     """
@@ -29,9 +33,12 @@ def load_img(filename, as_gray=True, as_mediapipe_image=False) -> np.ndarray:
 def resize_img(img: np.ndarray, output_shape: tuple = (150, 150)) -> np.ndarray:
     """
     Resize the image.
+
     Args:
         img: Array, input image.
+
         output_shape: Tuple, resized image shape.
+
     Return:
         Array, resized image.
     """
@@ -47,12 +54,18 @@ def extract_lbp_features(img: np.ndarray,
                          histogram: bool = False) -> np.ndarray:
     """
     Extract the local binary patterns (LBP) from an image.
+
     Args:
         img: Array, input image.
+
         n_points: Integer, number of circularly symmetric neighbor set points.
+
         radius: Integer, radius of circle.
+
         method: String, method to determine the pattern.
+
         histogram: Boolean, if true, LBP histogram returned.
+
     Return:
         Array, LBP features or their corresponding histograms (if histogram).
     """
@@ -74,14 +87,22 @@ def extract_hog_features(img,
                          feature_vector: bool = True) -> np.ndarray:
     """
     Extract Histogram of Oriented Gradients (HOG) for a given image.
+
     Args:
         img: Array, input image.
+
         orientations: Integer, number of orientation bins.
+
         pixels_per_cell: Tuple, size (in pixels) of a cell.
+
         cells_per_block:  Tuple, number of cells in each block.
+
         block_norm: String, block normalization method.
+
         visualize: Boolean, if True, return an image of the HOG.
+
         feature_vector: Boolean, if True, return the data as a flat feature vector.
+
     Return:
         Array, HOG features.
     """
@@ -93,9 +114,12 @@ def extract_face_landmarks(img: mp.Image,
                            model_asset_path='models/face_landmarker_v2_with_blendshapes.task'):
     """
     Extract face landmarks from an image.
+
     Args:
         img: Mediapipe image.
+
         model_asset_path: String, path to model assets.
+
     Return:
         Array, FaceLandmarker object in form of coordinates array.
     """

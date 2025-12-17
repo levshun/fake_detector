@@ -90,9 +90,13 @@ def generate_text_report(
 
     Args:
         result_label: High-level decision, e.g. "Подделка" или "Оригинал".
+
         confidence: Confidence level in [0, 1] if available.
+
         module_details: Per-module raw data blocks to surface in report.
+
         image_metadata: Optional metadata dict (EXIF, размер, дата и т.п.).
+
         conclusion: Optional custom conclusion; if None auto text is used.
     """
     lines = [
@@ -212,7 +216,9 @@ def generate_pdf_report(report_text: str, image_path: Path | str, output_path: P
 
     Args:
         report_text: Prepared text report.
+
         image_path: Path to source image to embed.
+
         output_path: Destination PDF path.
     """
     if FPDF is None:

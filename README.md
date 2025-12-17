@@ -46,7 +46,7 @@ The final structure of the project must be as follows:
 
 Folders ```models``` and ```datasets``` are required to be created manually.
 
-Run the project in the Python IDE like PyCHarm to check the ```tutorials```.
+Run the project in the Python IDE like PyCharm and check the ```tutorials``` to start the work.
 </p>
 
 <h3 align="left">Models</h3>

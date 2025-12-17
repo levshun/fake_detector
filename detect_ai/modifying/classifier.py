@@ -13,7 +13,9 @@ class ModClassifier:
 
     Params:
         _use_keras: Boolean, whether to use deep learning.
+
         model: Keras or SkLearn model to classification.
+
         class_indices: Dict, class indices to label encoding in format {class_id: class_label}.
     """
 
@@ -25,8 +27,10 @@ class ModClassifier:
     def load_model(self, path):
         """
         Load model.
+
         Args:
             path: String, path to model file.
+
         Return:
             Keras or SkLearn model.
         """
@@ -39,8 +43,10 @@ class ModClassifier:
     def load_class_indices(self, class_indices_path: str | None) -> dict:
         """
         Load class indices' dictionary.
+
         Args:
             class_indices_path: String, path to class indices.
+
         Return:
             Dictionary of class indices.
         """
@@ -58,9 +64,12 @@ class ModClassifier:
     def predict(self, data: np.array, index: list | None = None) -> list:
         """
         Predict class labels and their probabilities for given data.
+
         Args:
             data: Array, image data.
+
             index: List, index or name of image.
+
         Return:
             List of predicted class labels and probabilities.
         """

@@ -6,3 +6,4 @@ models/
 datasets/
 interface/log/
 tutorials/debug.log
+/docs/build/
