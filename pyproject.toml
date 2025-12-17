@@ -4,8 +4,9 @@ build-backend = "hatchling.build"
 
 [project]
 name = "detect_ai"
-version = "2025.0.2"
+version = "2025.0.21"
 dynamic = ["dependencies"]
+
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 

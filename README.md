@@ -12,13 +12,17 @@ The developed library fulfills 3 main detection tasks:
 <h3 align="left">Documentation</h3>
 <p align="left">
 
-Online documentation is available at ReadtheDocs: https://fake-detector.readthedocs.io.
+Online documentation is available at Read the Docs: https://fake-detector.readthedocs.io.
 </p>
 
 <h3 align="left">Installation</h3>
 <p align="left">
 
 Our library was tested with Python 3.11.
+
+```pip install -i https://test.pypi.org/simple/ detect-ai```
+
+```pip install -r .\requirements.txt```
 
 The correct versions of the libraries are presented in the ```requirements.txt``` 
 file.
