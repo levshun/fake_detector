@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "spam-eggs"
+name = "detect_ai"
 version = "2025.0.1"
 dependencies = [
   "httpx",
