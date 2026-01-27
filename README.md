@@ -1,4 +1,4 @@
-[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/levshun/fake_detector/blob/master/README_en.md)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/levshun/fake_detector/blob/master/README.en.md)
 
 <h1 align="center">БИБЛИОТЕКА FAKE DETECTOR</h1>
 
