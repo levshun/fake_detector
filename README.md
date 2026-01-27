@@ -1,39 +1,42 @@
-<h1 align="center">FAKE DETECTOR</h1>
+[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/levshun/fake_detector/blob/master/README_en.md)
 
-<h3 align="left">Tasks</h3>
+<h1 align="center">БИБЛИОТЕКА FAKE DETECTOR</h1>
+
+<h3 align="left">Задачи</h3>
 <p align="left">
 
-The developed library fulfills 3 main detection tasks:
-- **Generating**: detection of generated images containing a person's face.
-- **Modifying**: detection of modified images containing a person's face.
-- **Swapping**: detection of images containing a person's face with a faceswap.
+Разработанная библиотека решает три основные задачи обнаружения:
+- **Generating**: обнаружение сгенерированных изображений, содержащих изображение лица человека.
+- **Modifying**: обнаружение измененных изображений лица человека.
+- **Swapping**: обнаружение изображений лица человека с подменой лица.
 </p>
 
-<h3 align="left">Documentation</h3>
+<h3 align="left">Документация</h3>
 <p align="left">
 
-Online documentation is available at Read the Docs: https://fake-detector.readthedocs.io.
+Онлайн-документация проекта представлена на сайте Read the Docs:  https://fake-detector.readthedocs.io.
 </p>
 
-<h3 align="left">Installation</h3>
+<h3 align="left">Установка</h3>
 <p align="left">
 
-Our library was tested with Python 3.11.
+Данная библиотека была протестиирования для языка програмирования Python версии 3.11.
+
+Процесс установки:
 
 ```pip install -i https://test.pypi.org/simple/ detect-ai```
 
 ```pip install -r .\requirements.txt```
 
-The correct versions of the libraries are presented in the ```requirements.txt``` 
-file.
+Необходимые версии библиотек представлены в файле ```requirements.txt```.
 
-To install the library, firstly, download the repository.
+Чтобы установить библиотеку, сначала скачайте репозиторий.
 
-Then, create the virtual environment.
+Затем создайте виртуальное окружение.
 
-After that, use pip to install the libraries from the ```requirements.txt``` file.
+Далее воспользуйтесь командой ```pip``` для установки библиотек из файла ```requirements.txt```.
 
-The final structure of the project must be as follows:
+Итоговая структура проекта должна выглядеть следующим образом:
 ```
 │   .gitignore
 │   LICENSE
@@ -54,17 +57,17 @@ The final structure of the project must be as follows:
 └───tutorials
 ```
 
-Folders ```models``` and ```datasets``` are required to be created manually.
+Каталоги ```models``` и ```datasets``` необходимо создать вручную.
 
-Run the project in the Python IDE like PyCharm and check the ```tutorials``` to start the work.
+Далее необходимо запустить проект в среде разработки для языка программирования Python, например, PyCharm, и использовать файлы из каталога ```tutorials``` для знакомства с библиотекой.
 </p>
 
-<h3 align="left">Models</h3>
+<h3 align="left">Модели</h3>
 <p align="left">
 
-Pre-trained models are available here: https://disk.yandex.ru/d/QVQL-HBabVkUoA.
+Предобученные модели доступны по следующей ссылке: https://disk.yandex.ru/d/QVQL-HBabVkUoA.
 
-After their download and unzipping, you should have the following structure of the ```models``` folder: 
+После скачивания архива и его распаковки, структура файлов в каталоге ```models``` должна быть следующей: 
 ```
 models
 ├───generating
@@ -140,26 +143,26 @@ models
 ```
 </p>
 
-<h3 align="left">Datasets</h3>
+<h3 align="left">Наборы данных</h3>
 <p align="left">
 
-Datasets for testing are available here: https://disk.yandex.ru/d/9oX2v0c2E4zeFw.
+Наборы данных для тестирования доступны по следующей ссылке: https://disk.yandex.ru/d/9oX2v0c2E4zeFw.
 </p>
 
-<h3 align="left">Mirror</h3>
+<h3 align="left">Зеркало</h3>
 <p align="left">
 
-The mirror of the repository is available at GitLab: https://gitlab.com/levshun/fake_detector.
+Зеркало репозитория доступно на GitLab: https://gitlab.com/levshun/fake_detector.
 </p>
 
-<h3 align="left">Contacts</h3>
+<h3 align="left">Контакты</h3>
 <p align="left">
 
-You can contact us, using the following email: ```dmitry.levshun@gmail.com```.
+Вы можете связаться с нами, написав на следующий почтовый адрес: ```dmitry.levshun@gmail.com```.
 </p>
 
-<h3 align="left">Acknowledgement</h3>
+<h3 align="left">Благодарности</h3>
 <p align="left">
 
-This library was funded by the FASIE project agreement No. 50GYCodeAIS13-D7/94529.
+Разработка данной библиотеки ведется при поддержке Фонда содействия инновациям по договору 50ГУКодИИС13-D7/94529 от 03.06.2024.
 </p>

@@ -1,5 +1,5 @@
-<h3 align="left">TESTS</h3>
+<h3 align="left">ТЕСТЫ</h3>
 <p align="left">
 
-This folder contains unit tests of the library.
+Данный каталог содержит unit-тесты исходного кода библиотеки.
 </p>
