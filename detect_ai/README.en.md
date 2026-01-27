@@ -1,3 +1,5 @@
+[![ru](https://img.shields.io/badge/lang-ru-red.svg)](https://github.com/levshun/fake_detector/blob/master/detect_ai/README.md)
+
 <h3 align="left">DETECT AI</h3>
 <p align="left">
 
