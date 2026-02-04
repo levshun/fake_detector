@@ -17,6 +17,19 @@ The developed library fulfills 3 main detection tasks:
 Online documentation is available at Read the Docs: https://fake-detector.readthedocs.io.
 </p>
 
+<h3 align="left">Applied Use Cases</h3>
+<p align="left">
+
+The developed library can be applied in the following areas:
+
+1. <b>Forensic and court practice</b> — initial analysis of digital images to detect signs of synthetic generation or modification.
+2. <b>Law enforcement</b> — analysis of cases related to fake visual content, information influence incidents, and checking the reliability of materials from open sources and operational channels.
+3. <b>Corporate reputation protection</b> — verification of images used in public communications, support of reputation incident investigations, and reducing the risks of publishing or spreading unreliable visual materials.
+4. <b>Content moderation in social networks</b> — a supporting tool for platforms with user-generated content, for example to highlight suspicious items for review by moderators or experts.
+5. <b>Education</b> — courses, labs, and practical trainings in digital forensics, digital traces analysis, and trusted/safe use of AI.
+6. <b>Research</b> — using the library and datasets as an open base for reproducible experiments, algorithm comparison, and preparation of methodological materials.
+</p>
+
 <h3 align="left">Installation</h3>
 <p align="left">
 
