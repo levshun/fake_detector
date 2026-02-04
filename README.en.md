@@ -30,6 +30,16 @@ The developed library can be applied in the following areas:
 6. <b>Research</b> — using the library and datasets as an open base for reproducible experiments, algorithm comparison, and preparation of methodological materials.
 </p>
 
+<h3 align="left">Minimum Technical Requirements</h3>
+<p align="left">
+
+Recommended minimum compute platform: CPU - a modern multi-core processor with at least 6-8 physical cores (Intel Core i5/i7 or AMD Ryzen 5/7 of a similar generation), or Apple Silicon at Apple M4 level or newer; for x86 platforms, CPU frequency is typically around 3.0 GHz or higher. RAM - at least 16 GB. GPU - optional.
+
+To meet the target performance (processing time for one image for one fake type - no more than 5 seconds), we recommend a platform not lower than: Intel Core i9-12900KF (3.20 GHz) or equivalent, RAM 32 GB (DDR5), NVIDIA GeForce RTX 3090 Ti (24 GB VRAM recommended). On weaker systems (lower-class CPU, less RAM, no GPU, or a GPU with smaller VRAM), processing time may increase and in some modes can exceed 5 seconds.
+
+Supported operating systems: Windows 11, Debian 12, and macOS 26.
+</p>
+
 <h3 align="left">Installation</h3>
 <p align="left">
 
