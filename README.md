@@ -43,33 +43,24 @@
 <h3 align="left">Установка</h3>
 <p align="left">
 
-Данная библиотека была протестиирования для языка програмирования Python версии 3.11.
+Данная библиотека была протестирована для языка програмирования Python версии 3.11, 3.12.
 
 Процесс установки:
 
-```pip install -i https://test.pypi.org/simple/ detect-ai```
+Шаг 1. Создайте проект в Python IDE, скопировав его из VCS по ссылке ```https://github.com/levshun/fake_detector/```. Также можно сделать это из консоли, запустив команду:
 
-```pip install -r .\requirements.txt```
+```git clone https://github.com/levshun/fake_detector/```
 
-Необходимые версии библиотек представлены в файле ```requirements.txt```.
+Структура файлов и папок должна выглядеть следующим образом:
 
-Чтобы установить библиотеку, сначала скачайте репозиторий.
-
-Затем создайте виртуальное окружение.
-
-Далее воспользуйтесь командой ```pip``` для установки библиотек из файла ```requirements.txt```.
-
-Итоговая структура проекта должна выглядеть следующим образом:
 ```
 │   .gitignore
 │   LICENSE
 │   main.py
 │   README.md
 │   requirements.txt
-├───datasets
 ├───detect_ai
 ├───interface
-├───models
 ├───tests
 │   │   generating.py
 │   │   modifying.py
@@ -80,17 +71,18 @@
 └───tutorials
 ```
 
-Каталоги ```models``` и ```datasets``` необходимо создать вручную.
+Шаг 2. Настройте интерпретатор в Python IDE, взяв за основу Python 3.11-3.12. Используйте виртуальную среду ```.venv``` для установки зависимостей.
 
-Далее необходимо запустить проект в среде разработки для языка программирования Python, например, PyCharm, и использовать файлы из каталога ```tutorials``` для знакомства с библиотекой.
-</p>
+Шаг 3. Необходимые версии сторонних библиотек (зависимости) представлены в файле ```requirements.txt```. Если библиотеки не были установлены при создании проекта, это можно сделать вручную с помощью следующей команды:
 
-<h3 align="left">Модели</h3>
-<p align="left">
+```pip install -r .\requirements.txt```
 
-Предобученные модели доступны по следующей ссылке: https://disk.yandex.ru/d/QVQL-HBabVkUoA.
+Шаг 5. Установите библиотеку используя TEST PyPi.
 
-После скачивания архива и его распаковки, структура файлов в каталоге ```models``` должна быть следующей: 
+```pip install -i https://test.pypi.org/simple/ detect-ai```
+
+Шаг 6. Выгрузите архив с предобученными моделям по ссылке: [```https://disk.yandex.ru/d/QVQL-HBabVkUoA```](https://disk.yandex.ru/d/08_in5a5dZ0K4A). Скопируйте архив в корень проекта и распакуйте его. В корне проекта должна появиться структура каталогов и файлов следующего вида:
+
 ```
 models
 ├───generating
@@ -164,12 +156,42 @@ models
             random_forest_ef.pkl
             random_forest_fl.pkl
 ```
+
+Шаг 7. Выгрузите архив с данными для тестирования по ссылке: [https://disk.yandex.ru/d/YHuOkp-tSEX_Kg](https://disk.yandex.ru/d/YHuOkp-tSEX_Kg). Скопируйте архив в корень проекта и распакуйте его. В корне проекта должна появиться структура каталогов и файлов следующего вида:
+
+```
+datasets
+├── generating
+└── modifying
+    ├── bald_gan
+    │   ├── modification
+    │   └── original
+    ├── beauty_gan
+    │   ├── modification
+    │   └── original
+    ├── pilgram
+    │   ├── modification
+    │   ├── modification_multi
+    │   │   ├── blending
+    │   │   ├── css
+    │   │   └── instagram
+    │   └── original
+    └── qwen
+        ├── modification
+        └── original
+```
+
+Шаг 8. Используйте интерактивные ноутбуки из каталога ```tutorials``` для знакомства с библиотекой.
+</p>
+
+<h3 align="left">Модели</h3>
+<p align="left">
+Архив с предобученными моделями доступен по следующей ссылке: [https://disk.yandex.ru/d/QVQL-HBabVkUoA](https://disk.yandex.ru/d/08_in5a5dZ0K4A). 
 </p>
 
 <h3 align="left">Наборы данных</h3>
 <p align="left">
-
-Наборы данных для тестирования доступны по следующей ссылке: https://disk.yandex.ru/d/9oX2v0c2E4zeFw.
+Архив с наборами данных для тестирования доступен по следующей ссылке: [https://disk.yandex.ru/d/9oX2v0c2E4zeFw](https://disk.yandex.ru/d/08_in5a5dZ0K4A).
 </p>
 
 <h3 align="left">Зеркало</h3>
