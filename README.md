@@ -43,7 +43,7 @@
 <h3 align="left">Установка</h3>
 <p align="left">
 
-Данная библиотека была протестирована для языка програмирования Python версии 3.11, 3.12.
+Данная библиотека была протестирована для языка програмирования Python версии 3.11.
 
 Процесс установки:
 
@@ -56,7 +56,6 @@
 ```
 │   .gitignore
 │   LICENSE
-│   main.py
 │   README.md
 │   requirements.txt
 ├───detect_ai
@@ -71,17 +70,17 @@
 └───tutorials
 ```
 
-Шаг 2. Настройте интерпретатор в Python IDE, взяв за основу Python 3.11-3.12. Используйте виртуальную среду ```.venv``` для установки зависимостей.
+Шаг 2. Настройте интерпретатор в Python IDE, взяв за основу Python 3.11. Используйте виртуальную среду ```.venv``` для установки зависимостей.
 
 Шаг 3. Необходимые версии сторонних библиотек (зависимости) представлены в файле ```requirements.txt```. Если библиотеки не были установлены при создании проекта, это можно сделать вручную с помощью следующей команды:
 
 ```pip install -r requirements.txt```
 
-Шаг 5. Установите библиотеку используя TEST PyPi.
+Шаг 4. Установите библиотеку используя TEST PyPi.
 
 ```pip install -i https://test.pypi.org/simple/ detect-ai```
 
-Шаг 6. Выгрузите архив с предобученными моделям по ссылке: [```https://disk.yandex.ru/d/QVQL-HBabVkUoA```](https://disk.yandex.ru/d/08_in5a5dZ0K4A). Скопируйте архив в корень проекта и распакуйте его. В корне проекта должна появиться структура каталогов и файлов следующего вида:
+Шаг 5. Выгрузите архив с предобученными моделям по ссылке: [```https://disk.yandex.ru/d/FUpmkBHhr7cacA```](https://disk.yandex.ru/d/FUpmkBHhr7cacA). Скопируйте архив в корень проекта и распакуйте его. В корне проекта должна появиться структура каталогов и файлов следующего вида:
 
 ```
 models
@@ -128,7 +127,7 @@ models
 │   │               class.json
 │   │               eff_net_b3.keras
 │   │
-│   └───multiclass
+│   ├───multiclass
 │       ├───pilgram
 │       │   └───eff_net_b3
 │       │           class.json
@@ -138,6 +137,14 @@ models
 │           └───eff_net_b3
 │                   class.json
 │                   eff_net_b3.keras
+│
+│   └───ensembles
+│           beautification_detection.json
+│
+├───midas
+│       dpt_large_384.pt
+│       hubconf.py
+│       └───midas/
 │
 └───swapping
     │   face_detection_yunet_2023mar.onnx
@@ -157,7 +164,7 @@ models
             random_forest_fl.pkl
 ```
 
-Шаг 7. Выгрузите архив с данными для тестирования по ссылке: [https://disk.yandex.ru/d/YHuOkp-tSEX_Kg](https://disk.yandex.ru/d/YHuOkp-tSEX_Kg). Скопируйте архив в корень проекта и распакуйте его. В корне проекта должна появиться структура каталогов и файлов следующего вида:
+Шаг 6. Выгрузите архив с данными для тестирования по ссылке: [https://disk.yandex.ru/d/YHuOkp-tSEX_Kg](https://disk.yandex.ru/d/YHuOkp-tSEX_Kg). Скопируйте архив в корень проекта и распакуйте его. В корне проекта должна появиться структура каталогов и файлов следующего вида:
 
 ```
 datasets
@@ -181,12 +188,12 @@ datasets
         └── original
 ```
 
-Шаг 8. Используйте интерактивные ноутбуки из каталога ```tutorials``` для знакомства с библиотекой.
+Шаг 7. Используйте интерактивные ноутбуки из каталога ```tutorials``` для знакомства с библиотекой.
 </p>
 
 <h3 align="left">Модели</h3>
 <p align="left">
-Архив с предобученными моделями доступен по следующей ссылке: [https://disk.yandex.ru/d/QVQL-HBabVkUoA](https://disk.yandex.ru/d/08_in5a5dZ0K4A). 
+Архив с предобученными моделями доступен по следующей ссылке: [https://disk.yandex.ru/d/FUpmkBHhr7cacA](https://disk.yandex.ru/d/FUpmkBHhr7cacA). 
 </p>
 
 <h3 align="left">Наборы данных</h3>
