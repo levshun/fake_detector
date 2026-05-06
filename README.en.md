@@ -62,13 +62,10 @@ The final structure of the project must be as follows:
 ```
 │   .gitignore
 │   LICENSE
-│   main.py
 │   README.md
 │   requirements.txt
-├───datasets
 ├───detect_ai
 ├───interface
-├───models
 ├───tests
 │   │   generating.py
 │   │   modifying.py
@@ -87,7 +84,7 @@ Run the project in the Python IDE like PyCharm and check the ```tutorials``` to 
 <h3 align="left">Models</h3>
 <p align="left">
 
-Pre-trained models are available here: https://disk.yandex.ru/d/QVQL-HBabVkUoA.
+Pre-trained models are available here: https://disk.yandex.ru/d/FUpmkBHhr7cacA.
 
 After their download and unzipping, you should have the following structure of the ```models``` folder: 
 ```
@@ -135,7 +132,7 @@ models
 │   │               class.json
 │   │               eff_net_b3.keras
 │   │
-│   └───multiclass
+│   ├───multiclass
 │       ├───pilgram
 │       │   └───eff_net_b3
 │       │           class.json
@@ -145,6 +142,14 @@ models
 │           └───eff_net_b3
 │                   class.json
 │                   eff_net_b3.keras
+│
+│   └───ensembles
+│           beautification_detection.json
+│
+├───midas
+│       dpt_large_384.pt
+│       hubconf.py
+│       └───midas/
 │
 └───swapping
     │   face_detection_yunet_2023mar.onnx
@@ -168,7 +173,7 @@ models
 <h3 align="left">Datasets</h3>
 <p align="left">
 
-Datasets for testing are available here: https://disk.yandex.ru/d/9oX2v0c2E4zeFw.
+Datasets for testing are available here: https://disk.yandex.ru/d/YHuOkp-tSEX_Kg.
 </p>
 
 <h3 align="left">Mirror</h3>
