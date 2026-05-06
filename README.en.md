@@ -133,16 +133,16 @@ models
 │   │               eff_net_b3.keras
 │   │
 │   ├───multiclass
-│       ├───pilgram
-│       │   └───eff_net_b3
-│       │           class.json
-│       │           eff_net_b3.keras
-│       │
-│       └───tool
-│           └───eff_net_b3
-│                   class.json
-│                   eff_net_b3.keras
-│
+│   │    ├───pilgram
+│   │    │   └───eff_net_b3
+│   │    │           class.json
+│   │    │           eff_net_b3.keras
+│   │    │
+│   |    └───tool
+│   │        └───eff_net_b3
+│   │               class.json
+│   │               eff_net_b3.keras
+│   │
 │   └───ensembles
 │           beautification_detection.json
 │
