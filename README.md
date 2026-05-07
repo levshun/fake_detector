@@ -193,12 +193,12 @@ datasets
 
 <h3 align="left">Модели</h3>
 <p align="left">
-Архив с предобученными моделями доступен по следующей ссылке: [```https://disk.yandex.ru/d/FUpmkBHhr7cacA```](https://disk.yandex.ru/d/FUpmkBHhr7cacA). 
+Архив с предобученными моделями доступен по следующей ссылке: https://disk.yandex.ru/d/FUpmkBHhr7cacA. 
 </p>
 
 <h3 align="left">Наборы данных</h3>
 <p align="left">
-Архив с наборами данных для тестирования доступен по следующей ссылке: [```https://disk.yandex.ru/d/YHuOkp-tSEX_Kg```](https://disk.yandex.ru/d/YHuOkp-tSEX_Kg).
+Архив с наборами данных для тестирования доступен по следующей ссылке: https://disk.yandex.ru/d/YHuOkp-tSEX_Kg.
 </p>
 
 <h3 align="left">Зеркало</h3>
