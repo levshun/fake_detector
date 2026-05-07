@@ -43,22 +43,18 @@ Supported operating systems: Windows 11, Debian 12, and macOS 26.
 <h3 align="left">Installation</h3>
 <p align="left">
 
-Our library was tested with Python 3.11.
+This library has been tested for Python programming language version 3.11.
 
-```pip install -i https://test.pypi.org/simple/ detect-ai```
+Installation process:
 
-```pip install -r .\requirements.txt```
+Step 1: Create a project in Python IDE by copying it from VCS using the link 
+[```https://github.com/levshun/fake_detector/```](https://github.com/levshun/fake_detector/). 
+You can also do this from the console by running the command:
 
-The correct versions of the libraries are presented in the ```requirements.txt``` 
-file.
+```git clone https://github.com/levshun/fake_detector/```
 
-To install the library, firstly, download the repository.
+The file and folder structure should look like this:
 
-Then, create the virtual environment.
-
-After that, use pip to install the libraries from the ```requirements.txt``` file.
-
-The final structure of the project must be as follows:
 ```
 │   .gitignore
 │   LICENSE
@@ -76,17 +72,23 @@ The final structure of the project must be as follows:
 └───tutorials
 ```
 
-Folders ```models``` and ```datasets``` are required to be created manually.
+Step 2: Set up the Python IDE interpreter using Python 3.11 as the base. 
+Use the ```.venv``` virtual environment to install dependencies.
 
-Run the project in the Python IDE like PyCharm and check the ```tutorials``` to start the work.
-</p>
+Step 3. The required versions of third-party libraries (dependencies) are presented in the ```requirements.txt``` file. 
+If the libraries were not installed when creating the project, you can do this manually using the following command:
 
-<h3 align="left">Models</h3>
-<p align="left">
+```pip install -r requirements.txt```
 
-Pre-trained models are available here: https://disk.yandex.ru/d/FUpmkBHhr7cacA.
+Step 4. Install the library using TEST PyPi.
 
-After their download and unzipping, you should have the following structure of the ```models``` folder: 
+```pip install -i https://test.pypi.org/simple/ detect-ai```
+
+Step 5. Download the archive with pre-trained models from the link: 
+[```https://disk.yandex.ru/d/FUpmkBHhr7cacA```](https://disk.yandex.ru/d/FUpmkBHhr7cacA). 
+Copy the archive to the project root and unzip it. 
+The project root should now have a directory and file structure similar to the following:
+
 ```
 models
 ├───generating
@@ -133,13 +135,13 @@ models
 │   │               eff_net_b3.keras
 │   │
 │   ├───multiclass
-│   │    ├───pilgram
-│   │    │   └───eff_net_b3
-│   │    │           class.json
-│   │    │           eff_net_b3.keras
-│   │    │
-│   |    └───tool
-│   │        └───eff_net_b3
+│   │   ├───pilgram
+│   │   │   └───eff_net_b3
+│   │   │           class.json
+│   │   │           eff_net_b3.keras
+│   │   │
+│   │   └───tool
+│   │       └───eff_net_b3
 │   │               class.json
 │   │               eff_net_b3.keras
 │   │
@@ -168,18 +170,56 @@ models
             random_forest_ef.pkl
             random_forest_fl.pkl
 ```
+
+Step 6. Download the archive with the testing data from the link:
+[```https://disk.yandex.ru/d/YHuOkp-tSEX_Kg```](https://disk.yandex.ru/d/YHuOkp-tSEX_Kg). 
+Copy the archive to the project root and unzip it. 
+The project root should now have a directory and file structure similar to the following:
+
+```
+datasets
+├── generating
+└── modifying
+    ├── bald_gan
+    │   ├── modification
+    │   └── original
+    ├── beauty_gan
+    │   ├── modification
+    │   └── original
+    ├── pilgram
+    │   ├── modification
+    │   ├── modification_multi
+    │   │   ├── blending
+    │   │   ├── css
+    │   │   └── instagram
+    │   └── original
+    └── qwen
+        ├── modification
+        └── original
+```
+
+Step 7: Use the interactive notebooks from the ```tutorials``` catalog to explore the library.
+</p>
+
+<h3 align="left">Models</h3>
+<p align="left">
+
+The archive with pre-trained models is available at the following link: 
+[```https://disk.yandex.ru/d/FUpmkBHhr7cacA```](https://disk.yandex.ru/d/FUpmkBHhr7cacA). 
 </p>
 
 <h3 align="left">Datasets</h3>
 <p align="left">
 
-Datasets for testing are available here: https://disk.yandex.ru/d/YHuOkp-tSEX_Kg.
+The archive with test datasets is available at the following link: 
+[```https://disk.yandex.ru/d/YHuOkp-tSEX_Kg```](https://disk.yandex.ru/d/YHuOkp-tSEX_Kg).
 </p>
 
 <h3 align="left">Mirror</h3>
 <p align="left">
 
-The mirror of the repository is available at GitLab: https://gitlab.com/levshun/fake_detector.
+The mirror of the repository is available at GitLab: 
+[```https://gitlab.com/levshun/fake_detector```](https://gitlab.com/levshun/fake_detector).
 </p>
 
 <h3 align="left">Contacts</h3>
