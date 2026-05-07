@@ -164,7 +164,7 @@ models
             random_forest_fl.pkl
 ```
 
-Шаг 6. Выгрузите архив с данными для тестирования по ссылке: [https://disk.yandex.ru/d/YHuOkp-tSEX_Kg](https://disk.yandex.ru/d/YHuOkp-tSEX_Kg). Скопируйте архив в корень проекта и распакуйте его. В корне проекта должна появиться структура каталогов и файлов следующего вида:
+Шаг 6. Выгрузите архив с данными для тестирования по ссылке: [```https://disk.yandex.ru/d/YHuOkp-tSEX_Kg```](https://disk.yandex.ru/d/YHuOkp-tSEX_Kg). Скопируйте архив в корень проекта и распакуйте его. В корне проекта должна появиться структура каталогов и файлов следующего вида:
 
 ```
 datasets
@@ -193,12 +193,12 @@ datasets
 
 <h3 align="left">Модели</h3>
 <p align="left">
-Архив с предобученными моделями доступен по следующей ссылке: [https://disk.yandex.ru/d/FUpmkBHhr7cacA](https://disk.yandex.ru/d/FUpmkBHhr7cacA). 
+Архив с предобученными моделями доступен по следующей ссылке: [```https://disk.yandex.ru/d/FUpmkBHhr7cacA```](https://disk.yandex.ru/d/FUpmkBHhr7cacA). 
 </p>
 
 <h3 align="left">Наборы данных</h3>
 <p align="left">
-Архив с наборами данных для тестирования доступен по следующей ссылке: [https://disk.yandex.ru/d/9oX2v0c2E4zeFw](https://disk.yandex.ru/d/08_in5a5dZ0K4A).
+Архив с наборами данных для тестирования доступен по следующей ссылке: [```https://disk.yandex.ru/d/08_in5a5dZ0K4A```](https://disk.yandex.ru/d/YHuOkp-tSEX_Kg).
 </p>
 
 <h3 align="left">Зеркало</h3>
