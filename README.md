@@ -14,7 +14,7 @@
 <h3 align="left">Документация</h3>
 <p align="left">
 
-Онлайн-документация проекта представлена на сайте Read the Docs:  https://fake-detector.readthedocs.io.
+Онлайн-документация проекта представлена на сайте Read the Docs: [https://fake-detector.readthedocs.io](https://fake-detector.readthedocs.io).
 </p>
 
 <h3 align="left">Направления прикладного использования</h3>
@@ -47,7 +47,7 @@
 
 Процесс установки:
 
-Шаг 1. Создайте проект в Python IDE, скопировав его из VCS по ссылке ```https://github.com/levshun/fake_detector/```. Также можно сделать это из консоли, запустив команду:
+Шаг 1. Создайте проект в Python IDE, скопировав его из VCS по ссылке [```https://github.com/levshun/fake_detector/```](https://github.com/levshun/fake_detector/). Также можно сделать это из консоли, запустив команду:
 
 ```git clone https://github.com/levshun/fake_detector/```
 
@@ -198,7 +198,7 @@ datasets
 
 <h3 align="left">Наборы данных</h3>
 <p align="left">
-Архив с наборами данных для тестирования доступен по следующей ссылке: [```https://disk.yandex.ru/d/08_in5a5dZ0K4A```](https://disk.yandex.ru/d/YHuOkp-tSEX_Kg).
+Архив с наборами данных для тестирования доступен по следующей ссылке: [```https://disk.yandex.ru/d/YHuOkp-tSEX_Kg```](https://disk.yandex.ru/d/YHuOkp-tSEX_Kg).
 </p>
 
 <h3 align="left">Зеркало</h3>
