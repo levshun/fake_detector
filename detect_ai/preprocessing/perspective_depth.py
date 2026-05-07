@@ -3,30 +3,33 @@ import numpy as np
 import torch
 import torchvision.transforms as transforms
 import math
+from pathlib import Path
 from scipy.stats import skew, kurtosis
+
+_MIDAS_DIR = Path(__file__).resolve().parents[2] / "models" / "midas"
 
 def load_midas_model():
     """
     Загружает предобученную модель MiDaS для оценки глубины.
     """
-    model_type = "DPT_Large"  # Можно использовать "MiDaS_small" для меньшей модели
-    model = torch.hub.load("intel-isl/MiDaS", model_type, trust_repo=True)
+    model_type = "DPT_Large"
+    model = torch.hub.load(str(_MIDAS_DIR), model_type, source="local", pretrained=False)
+    state_dict = torch.load(str(_MIDAS_DIR / "dpt_large_384.pt"), map_location="cpu")
+    model.load_state_dict(state_dict)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     model.eval()
-    midas_transforms = torch.hub.load("intel-isl/MiDaS", "transforms", trust_repo=True)
-    if model_type in ["DPT_Large", "DPT_Hybrid"]:
-        transform = midas_transforms.dpt_transform
-    else:
-        transform = midas_transforms.small_transform
+    midas_transforms = torch.hub.load(str(_MIDAS_DIR), "transforms", source="local")
+    transform = midas_transforms.dpt_transform
     return model, transform, device
 
-# Загружаем модель один раз (глобально)
-_model, _transform, _device = load_midas_model()
+_model = _transform = _device = None
 
 def extract_perspective_depth_features(image, gray, landmarks):
     """
     Извлекает признаки перспективы и глубины на основе моноскопической оценки глубины.
+
+    Модель MiDaS загружается при первом вызове функции.
 
     Args:
         avg_face_depth: Средняя нормализованная глубина в области лица.
@@ -56,6 +59,10 @@ def extract_perspective_depth_features(image, gray, landmarks):
         depth_ratio: Отношение средней глубины лица к средней глубине всего изображения.
 
     """
+    global _model, _transform, _device
+    if _model is None:
+        _model, _transform, _device = load_midas_model()
+
     eps = 1e-8
 
     # Преобразуем изображение для модели: BGR -> RGB -> PIL Image -> numpy массив
