@@ -171,6 +171,8 @@ models
             random_forest_fl.pkl
 ```
 
+Alternatively, the models can be downloaded from Hugging Face: [```https://huggingface.co/heidel-von-hymack/models```](https://huggingface.co/heidel-von-hymack/models).
+
 Step 6. Download the archive with the testing data from the link:
 [```https://disk.yandex.ru/d/YHuOkp-tSEX_Kg```](https://disk.yandex.ru/d/YHuOkp-tSEX_Kg). 
 Copy the archive to the project root and unzip it. 
@@ -179,6 +181,9 @@ The project root should now have a directory and file structure similar to the f
 ```
 datasets
 ├── generating
+├── swapping
+    ├── fake
+    ├── orig
 └── modifying
     ├── bald_gan
     │   ├── modification
@@ -198,6 +203,8 @@ datasets
         └── original
 ```
 
+Similarly, data can be downloaded from Hugging Face: [```https://huggingface.co/heidel-von-hymack/datasets```](https://huggingface.co/heidel-von-hymack/datasets).
+
 Step 7: Use the interactive notebooks from the ```tutorials``` catalog to explore the library.
 </p>
 
@@ -206,6 +213,8 @@ Step 7: Use the interactive notebooks from the ```tutorials``` catalog to explor
 
 The archive with pre-trained models is available at the following link: 
 [```https://disk.yandex.ru/d/FUpmkBHhr7cacA```](https://disk.yandex.ru/d/FUpmkBHhr7cacA). 
+
+Alternatively, the models can be downloaded from Hugging Face: [```https://huggingface.co/heidel-von-hymack/models```](https://huggingface.co/heidel-von-hymack/models).
 </p>
 
 <h3 align="left">Datasets</h3>
@@ -213,6 +222,8 @@ The archive with pre-trained models is available at the following link:
 
 The archive with test datasets is available at the following link: 
 [```https://disk.yandex.ru/d/YHuOkp-tSEX_Kg```](https://disk.yandex.ru/d/YHuOkp-tSEX_Kg).
+
+Similarly, the data can be downloaded from Hugging Face: [```https://huggingface.co/heidel-von-hymack/datasets```](https://huggingface.co/heidel-von-hymack/datasets).
 </p>
 
 <h3 align="left">Mirror</h3>
