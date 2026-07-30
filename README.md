@@ -173,6 +173,8 @@ models
             random_forest_fl.pkl
 ```
 
+Альтернативно модели могут выгружены с Hugging Face: [```https://huggingface.co/heidel-von-hymack/models```](https://huggingface.co/heidel-von-hymack/models).
+
 Шаг 6. Выгрузите архив с данными для тестирования по ссылке: 
 [```https://disk.yandex.ru/d/YHuOkp-tSEX_Kg```](https://disk.yandex.ru/d/YHuOkp-tSEX_Kg). 
 Скопируйте архив в корень проекта и распакуйте его. 
@@ -181,6 +183,9 @@ models
 ```
 datasets
 ├── generating
+├── swapping
+    ├── fake
+    ├── orig
 └── modifying
     ├── bald_gan
     │   ├── modification
@@ -200,6 +205,8 @@ datasets
         └── original
 ```
 
+Аналогичным образом, данные могут быть выгружены с Hugging Face: [```https://huggingface.co/heidel-von-hymack/datasets```](https://huggingface.co/heidel-von-hymack/datasets).
+
 Шаг 7. Используйте интерактивные ноутбуки из каталога ```tutorials``` для знакомства с библиотекой.
 </p>
 
@@ -208,6 +215,8 @@ datasets
 
 Архив с предобученными моделями доступен по следующей ссылке:
 [```https://disk.yandex.ru/d/FUpmkBHhr7cacA```](https://disk.yandex.ru/d/FUpmkBHhr7cacA). 
+
+Альтернативно модели могут выгружены с Hugging Face: [```https://huggingface.co/heidel-von-hymack/models```](https://huggingface.co/heidel-von-hymack/models).
 </p>
 
 <h3 align="left">Наборы данных</h3>
@@ -215,6 +224,8 @@ datasets
 
 Архив с наборами данных для тестирования доступен по следующей ссылке: 
 [```https://disk.yandex.ru/d/YHuOkp-tSEX_Kg```](https://disk.yandex.ru/d/YHuOkp-tSEX_Kg).
+
+Аналогичным образом, данные могут быть выгружены с Hugging Face: [```https://huggingface.co/heidel-von-hymack/datasets```](https://huggingface.co/heidel-von-hymack/datasets).
 </p>
 
 <h3 align="left">Зеркало</h3>
